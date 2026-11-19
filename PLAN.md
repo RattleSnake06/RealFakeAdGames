@@ -20,6 +20,17 @@ game's specific minigames, characters or look.
 - Fixed logical resolution (e.g. 720×1280 portrait, like a phone ad) scaled to fit the window,
   so physics/levels behave the same on every screen.
 
+## Art direction (locked)
+- **Look:** bright sky, halftone dots, rotating sunbursts, chunky "sticker" UI: every panel and button has a
+  white rim + dark ink outline (`#2a1650`) + a solid drop shadow. Glossy, rounded buttons that squash when pressed.
+- **Mascots:** the **Blobs**, round jelly characters with big eyes, one color per game
+  (pink Tower, gold Draw, blue Merge, purple Doors, green Hole). They're our own characters,
+  so we never use stick figures from the original game.
+- **Fonts:** Lilita One (display) + Fredoka (body), with rounded system fallbacks.
+- **Ad parody details:** "Ad ⓘ ✕" chips (the ✕ on the title dodges your click), clickbait stickers,
+  screen wipe transitions, cheap little bleep/bloop UI sounds.
+- **Art pipeline:** inline SVG (`js/art.js`) so everything scales sharply on every screen and needs no image files.
+
 ## The 5 games
 | # | Name | The "ad" | Real gameplay | Core systems |
 |---|------|----------|---------------|--------------|
@@ -33,8 +44,10 @@ Each game: **10 levels** + a final "boss" level. Clearing the final level marks 
 in the menu. Clearing all 5 unlocks a secret ending/credits.
 
 ## Milestones
-**M0 – Shell (DONE)**: title screen, menu with 5 cards, game screen, pause/settings/credits
-overlays, keyboard + mouse + touch, save data, debug "mark cleared".
+**M0 – Shell (DONE)**: animated title (logo, sunburst, hopping Blobs, "press any button"),
+game select with a big featured card + 5 game tiles, coin & trophy counters, Wardrobe/Options/Credits,
+game screen placeholder, pause overlay, screen wipe transitions, UI sounds, keyboard + mouse + touch,
+save data, debug "clear it" button.
 
 **M1 – Engine core** (shared by all games)
 1. `js/engine/`: game loop (fixed timestep), canvas scaler, input (pointer + keys unified),
@@ -64,6 +77,7 @@ For each game, the same checklist:
 - Fake "ad intro" clip before each game (5s, deliberately cheesy, skippable).
 - Real art (consistent cartoon style), music track for menu + one per game.
 - Menu thumbnails become little animated loops.
+- Coins earned per level (stars × 100) → **Wardrobe**: hats/outfits for your Blob, shown on the title screen.
 
 **M4 – Polish & QA**
 - Automated Playwright smoke test: title → menu → each game loads → pause → back, no console errors.

@@ -1,136 +1,232 @@
-// Screen router + menu. No build step: open index.html in a browser.
+// Screen router, menu, overlays, input and UI sounds. No build step: open index.html.
 (() => {
   const SAVE_KEY = 'rfag.save.v1';
   const $ = (s) => document.querySelector(s);
+  const $$ = (s) => [...document.querySelectorAll(s)];
 
-  // ---------- Save data ----------
-  const defaultSave = { cleared: {}, settings: { music: 70, sfx: 80, shake: true } };
+  // ---------------- Save data ----------------
+  const defaults = () => ({ cleared: {}, levels: {}, coins: 0, settings: { music: 70, sfx: 80, shake: true } });
   function load() {
-    try { return { ...defaultSave, ...JSON.parse(localStorage.getItem(SAVE_KEY)) }; }
-    catch { return structuredClone(defaultSave); }
+    try {
+      const raw = JSON.parse(localStorage.getItem(SAVE_KEY));
+      const d = defaults();
+      return raw ? { ...d, ...raw, settings: { ...d.settings, ...raw.settings } } : d;
+    } catch { return defaults(); }
   }
   function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(state.save)); } catch {} }
 
-  const state = { screen: 'title', currentGame: null, selected: 0, save: load() };
+  const state = { screen: 'title', selected: 0, busy: false, save: load() };
 
-  // ---------- Screens ----------
+  // ---------------- UI sounds (Web Audio, no files) ----------------
+  let ctx;
+  function blip(freq = 520, dur = 0.08, type = 'square', slide = 1.6) {
+    const vol = state.save.settings.sfx / 100;
+    if (!vol) return;
+    try {
+      ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
+      const t = ctx.currentTime, o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t);
+      o.frequency.exponentialRampToValueAtTime(freq * slide, t + dur);
+      g.gain.setValueAtTime(0.12 * vol, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(ctx.destination);
+      o.start(t); o.stop(t + dur + 0.02);
+    } catch {}
+  }
+  const sfx = {
+    hover: () => blip(880, 0.04, 'triangle', 1.2),
+    click: () => blip(440, 0.09, 'square', 2),
+    back: () => blip(520, 0.1, 'square', 0.5),
+    whoosh: () => blip(200, 0.25, 'sawtooth', 4),
+  };
+
+  // ---------------- Screens + wipe transition ----------------
   function show(name) {
-    document.querySelectorAll('.screen').forEach((s) => s.classList.remove('active', 'fade-in'));
-    const el = $('#screen-' + name);
-    el.classList.add('active', 'fade-in');
+    $$('.screen').forEach((s) => s.classList.toggle('active', s.id === 'screen-' + name));
     state.screen = name;
-    if (name === 'menu') { renderMenu(); focusCard(state.selected); }
-    if (name === 'title') $('#btn-start').focus();
+    if (name === 'menu') { renderMenu(); select(state.selected, false); }
+    if (name === 'title') $('#btn-start').focus({ preventScroll: true });
+  }
+  function go(name, before) {
+    if (state.busy) return;
+    state.busy = true;
+    const wipe = $('#wipe');
+    sfx.whoosh();
+    wipe.className = 'cover';
+    setTimeout(() => {
+      before && before();
+      closeOverlays();
+      show(name);
+      wipe.className = 'uncover';
+      setTimeout(() => { wipe.className = ''; state.busy = false; }, 380);
+    }, 320);
   }
 
-  // ---------- Overlays ----------
-  function openOverlay(id) { closeOverlays(); $('#overlay-' + id).classList.add('open'); $('#overlay-' + id + ' .btn').focus(); }
-  function closeOverlays() { document.querySelectorAll('.overlay.open').forEach((o) => o.classList.remove('open')); }
-  const overlayOpen = () => !!document.querySelector('.overlay.open');
+  // ---------------- Overlays ----------------
+  function openOverlay(id) {
+    closeOverlays();
+    const o = $('#overlay-' + id);
+    o.classList.add('open');
+    o.querySelector('.btn, input').focus({ preventScroll: true });
+  }
+  function closeOverlays() { $$('.overlay.open').forEach((o) => o.classList.remove('open')); }
+  const overlayOpen = () => !!$('.overlay.open');
 
-  // ---------- Menu ----------
+  // ---------------- Menu ----------------
+  const levelsDone = (g) => state.save.levels[g.id] || 0;
+  const starStr = (g) => { const n = Math.round((levelsDone(g) / g.levels) * 3); return '★'.repeat(n) + '☆'.repeat(3 - n); };
+
   function renderMenu() {
-    const grid = $('#game-grid');
-    grid.innerHTML = '';
+    const list = $('#game-list');
+    list.innerHTML = '';
     GAMES.forEach((g, i) => {
       const done = !!state.save.cleared[g.id];
-      const card = document.createElement('button');
-      card.className = 'card';
-      card.setAttribute('role', 'listitem');
-      card.style.setProperty('--c', g.color);
-      card.dataset.index = i;
-      card.innerHTML = `
-        <div class="card-thumb">
-          <span class="card-hook">${g.adHook}</span>
-          <span>${g.emoji}</span>
-          <span class="card-num">#${i + 1}</span>
-        </div>
-        <div class="card-body">
-          <span class="card-name">${g.name}</span>
-          <span class="card-tag">${g.tagline}</span>
-          <span class="card-status ${done ? 'cleared' : ''}">${done ? '★ CLEARED' : '▶ PLAY'}</span>
-        </div>`;
-      card.addEventListener('click', () => openGame(i));
-      card.addEventListener('focus', () => setSelected(i));
-      card.addEventListener('mouseenter', () => setSelected(i));
-      grid.appendChild(card);
+      const t = document.createElement('button');
+      t.className = 'tile';
+      t.setAttribute('role', 'listitem');
+      t.style.setProperty('--c', g.color);
+      t.style.setProperty('--d', g.dark);
+      t.innerHTML = `
+        <span class="tile-thumb">${ART[g.id]}</span>
+        <span class="tile-text"><span class="tile-num">GAME ${i + 1}</span><span class="tile-name">${g.name}</span></span>
+        <span class="tile-badge ${done ? 'done' : ''}" title="${done ? 'Cleared' : 'Not cleared'}">${done ? '★' : '★'}</span>`;
+      t.addEventListener('click', () => {
+        if (matchMedia('(hover: hover)').matches) return play();
+        select(i); // touch: first tap previews, PLAY button starts
+        $('.menu-main').scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      t.addEventListener('dblclick', play);
+      t.addEventListener('mouseenter', () => select(i, false));
+      list.appendChild(t);
     });
-    const n = Object.keys(state.save.cleared).length;
-    $('#clear-count').textContent = `🏆 ${n} / ${GAMES.length}`;
-  }
-  function setSelected(i) {
-    state.selected = i;
-    document.querySelectorAll('.card').forEach((c, j) => c.classList.toggle('selected', i === j));
-  }
-  function focusCard(i) {
-    const cards = document.querySelectorAll('.card');
-    i = (i + cards.length) % cards.length;
-    setSelected(i);
-    cards[i].focus();
-  }
-  function moveSelection(dx, dy) {
-    const cards = [...document.querySelectorAll('.card')];
-    // Work out columns from layout so arrow keys match the visible grid.
-    const top0 = cards[0].offsetTop;
-    const cols = cards.filter((c) => c.offsetTop === top0).length || 1;
-    focusCard(Math.min(cards.length - 1, Math.max(0, state.selected + dx + dy * cols)));
+    $('#clear-count').textContent = `${Object.keys(state.save.cleared).length}/${GAMES.length}`;
+    $('#coin-count').textContent = state.save.coins.toLocaleString();
   }
 
-  // ---------- Game host (placeholder until real modules exist) ----------
-  function openGame(i) {
-    const g = GAMES[i];
-    state.currentGame = g;
-    $('#game-title').textContent = g.name;
-    $('#game-stage').innerHTML = `
-      <div class="placeholder">
-        <div class="big">${g.emoji}</div>
-        <h2>${g.name}</h2>
-        <p>${g.genre} · coming soon</p>
-        <button class="btn" data-action="debug-clear">MARK AS CLEARED (debug)</button>
+  function renderFeatured() {
+    const g = GAMES[state.selected];
+    const f = $('#featured');
+    f.style.setProperty('--c', g.color);
+    f.style.setProperty('--d', g.dark);
+    const pct = Math.round((levelsDone(g) / g.levels) * 100);
+    f.innerHTML = `
+      <div class="feat-art">
+        <span class="sticker">${g.adHook}</span>
+        <span class="feat-ad">Ad ⓘ</span>
+        ${ART[g.id]}
+      </div>
+      <div class="feat-info">
+        <span class="feat-num">GAME ${state.selected + 1} · ${g.genre.toUpperCase()}</span>
+        <h3 class="feat-name">${g.name}</h3>
+        <p class="feat-tag">${g.tagline}</p>
+        <div class="feat-meta"><span class="stars">${starStr(g)}</span>
+          <span class="progress" title="${pct}%"><i style="width:${pct}%"></i></span>
+          <span>${levelsDone(g)}/${g.levels}</span></div>
+        <button class="btn btn-play b-green" data-action="play">PLAY ▶</button>
       </div>`;
-    show('game');
   }
 
-  // ---------- Actions ----------
+  function select(i, withSound = true) {
+    const n = GAMES.length;
+    i = ((i % n) + n) % n;
+    const changed = i !== state.selected || !$('#featured').childElementCount;
+    state.selected = i;
+    $$('.tile').forEach((t, j) => t.classList.toggle('selected', i === j));
+    if (changed) { renderFeatured(); if (withSound) sfx.hover(); }
+  }
+
+  // ---------------- Game host (placeholder until real modules exist) ----------------
+  function play() {
+    const g = GAMES[state.selected];
+    sfx.click();
+    go('game', () => {
+      $('#game-title').textContent = g.name;
+      $('#game-stage').innerHTML = `
+        <div class="wip">
+          <div class="featured" style="--c:${g.color};--d:${g.dark}">
+            <div class="feat-art">${ART[g.id]}<div class="tape"><span>UNDER CONSTRUCTION</span></div></div>
+            <div class="wip-actions">
+              <button class="btn b-blue" data-action="back-menu">◀ BACK</button>
+              <button class="btn b-orange" data-action="debug-clear">DEBUG: CLEAR IT</button>
+            </div>
+          </div>
+        </div>`;
+    });
+  }
+
+  // ---------------- Actions ----------------
   const actions = {
-    start: () => show('menu'),
-    'back-title': () => show('title'),
-    'back-menu': () => { closeOverlays(); show('menu'); },
-    settings: () => openOverlay('settings'),
-    credits: () => openOverlay('credits'),
-    pause: () => openOverlay('pause'),
-    restart: () => { closeOverlays(); openGame(state.selected); },
-    'close-overlay': () => { closeOverlays(); if (state.screen === 'menu') focusCard(state.selected); },
-    'reset-progress': () => { if (confirm('Reset all progress?')) { state.save.cleared = {}; save(); renderMenu(); } },
-    'debug-clear': () => { state.save.cleared[state.currentGame.id] = true; save(); show('menu'); },
+    start: () => { sfx.click(); go('menu'); },
+    play,
+    'back-title': () => { sfx.back(); go('title'); },
+    'back-menu': () => { sfx.back(); go('menu'); },
+    settings: () => { sfx.click(); openOverlay('settings'); },
+    credits: () => { sfx.click(); openOverlay('credits'); },
+    wardrobe: () => { sfx.click(); openOverlay('wardrobe'); },
+    pause: () => { sfx.click(); openOverlay('pause'); },
+    restart: () => { closeOverlays(); play(); },
+    'close-overlay': () => { sfx.back(); closeOverlays(); if (state.screen === 'menu') $$('.tile')[state.selected]?.focus({ preventScroll: true }); },
+    'reset-progress': () => {
+      if (!confirm('Reset all progress?')) return;
+      const settings = state.save.settings;
+      state.save = { ...defaults(), settings };
+      save(); renderMenu(); select(state.selected, false); renderFeatured();
+    },
+    'debug-clear': () => {
+      const g = GAMES[state.selected];
+      state.save.cleared[g.id] = true;
+      state.save.levels[g.id] = g.levels;
+      state.save.coins += 500;
+      save(); go('menu');
+    },
+    'fake-close': () => {
+      blip(300, 0.15, 'square', 0.6);
+      const chip = $('.ad-chip'), msg = $('#nice-try');
+      chip.classList.remove('dodge'); msg.classList.remove('show');
+      void chip.offsetWidth;
+      chip.classList.add('dodge'); msg.classList.add('show');
+    },
   };
+
   document.addEventListener('click', (e) => {
     const t = e.target.closest('[data-action]');
-    if (t && actions[t.dataset.action]) actions[t.dataset.action]();
+    if (t && actions[t.dataset.action]) { e.stopPropagation(); return actions[t.dataset.action](); }
+    // "Press any button": any click on the title screen starts.
+    if (state.screen === 'title' && !overlayOpen()) actions.start();
+  });
+  document.addEventListener('mouseover', (e) => {
+    const b = e.target.closest('.btn');
+    if (b && !b.contains(e.relatedTarget)) sfx.hover();
   });
 
-  // ---------- Keyboard ----------
+  // ---------------- Keyboard ----------------
   document.addEventListener('keydown', (e) => {
     const k = e.key;
+    if (state.busy) return;
     if (k === 'Escape') {
       if (overlayOpen()) return actions['close-overlay']();
       if (state.screen === 'game') return actions.pause();
-      if (state.screen === 'menu') return show('title');
+      if (state.screen === 'menu') return actions['back-title']();
+      return;
     }
     if (overlayOpen()) return;
-    if (state.screen === 'title' && (k === 'Enter' || k === ' ')) { e.preventDefault(); return show('menu'); }
+    if (state.screen === 'title' && !['Tab', 'Shift', 'Alt', 'Control', 'Meta'].includes(k)) { e.preventDefault(); return actions.start(); }
     if (state.screen === 'menu') {
-      const map = { ArrowLeft: [-1, 0], a: [-1, 0], ArrowRight: [1, 0], d: [1, 0], ArrowUp: [0, -1], w: [0, -1], ArrowDown: [0, 1], s: [0, 1] };
-      if (map[k]) { e.preventDefault(); moveSelection(...map[k]); }
+      const up = ['ArrowUp', 'w', 'W', 'ArrowLeft', 'a', 'A'], down = ['ArrowDown', 's', 'S', 'ArrowRight', 'd', 'D'];
+      if (up.includes(k)) { e.preventDefault(); select(state.selected - 1); $$('.tile')[state.selected].focus({ preventScroll: false }); }
+      if (down.includes(k)) { e.preventDefault(); select(state.selected + 1); $$('.tile')[state.selected].focus({ preventScroll: false }); }
+      if ((k === 'Enter' || k === ' ') && document.activeElement?.classList.contains('tile')) { e.preventDefault(); play(); }
     }
   });
 
-  // ---------- Settings wiring ----------
+  // ---------------- Settings wiring ----------------
   const s = state.save.settings;
   $('#set-music').value = s.music; $('#set-sfx').value = s.sfx; $('#set-shake').checked = s.shake;
   $('#set-music').oninput = (e) => { s.music = +e.target.value; save(); };
   $('#set-sfx').oninput = (e) => { s.sfx = +e.target.value; save(); };
-  $('#set-shake').onchange = (e) => { s.shake = e.target.checked; save(); };
+  $('#set-sfx').onchange = () => sfx.click();
+  $('#set-shake').onchange = (e) => { s.shake = e.target.checked; save(); sfx.click(); };
 
   show('title');
 })();
