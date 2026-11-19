@@ -26,7 +26,7 @@
   const CLAMP_X = 10.4, BASE_S = 11;                   // drivable bounds
   const MILESTONES = [100, 500, 2e3, 6e3, 2e4, 6e4, 1.5e5, 3.5e5, 6.5e5, 1e6];
   const CART_CAP = [20, 35, 55, 80, 110, 150, 200, 260, 330, 400];
-  const REGROW_AFTER = 40;                             // seconds before mined ore grows back
+  const REGROW_AFTER = 120;                            // seconds before mined ore grows back
 
   const nice = (n) => { const p = 10 ** Math.max(0, Math.floor(Math.log10(n)) - 1); return Math.round(n / p) * p; };
   const UPG = [
@@ -850,6 +850,15 @@
         if (this.cargo.length >= S.cap) {
           this.full = true;
           if (this.moving && this.throttle('full', 2.2)) { this.float('CART FULL!', this.tmp.set(this.pos.x, 2.6, this.pos.y), 'warn'); this.api.blip(180, 0.15, 'square', 0.7, 0.6); }
+          // A full cart ploughs ore aside (not collected) so regrown ore can never trap you.
+          if (this.moving) {
+            cand.sort((a, b) => a[0] - b[0]);
+            for (const [, i] of cand) {
+              if (!this.alive[i]) continue;
+              if (this.budget < 1) break;
+              this.budget -= 1; this.knockChunk(i, fx, fz);
+            }
+          }
         } else {
           cand.sort((a, b) => a[0] - b[0]);
           for (const [, i] of cand) {
@@ -868,6 +877,16 @@
         }
       }
       if (this.cargo.length < S.cap) this.full = false;
+    }
+    knockChunk(i, fx, fz) {
+      this.alive[i] = 0; this.minedAt[i] = this.time;
+      this.setChunk(i, 0);
+      this.regrowQ.push(i);
+      // fling it sideways, away from the drill
+      const side = Math.random() < 0.5 ? -1 : 1, d = 1.6 + Math.random() * 1.2;
+      const to = new T.Vector3(this.cx[i] - fz * side * d + fx * 0.4, 0.2, this.cz[i] + fx * side * d + fz * 0.4);
+      this.oreFly.add(this.tmp.set(this.cx[i], this.cy[i], this.cz[i]), to, 0.35, 0.9, this.cs[i] * 1.6, TIERS[this.ct[i]].color, null);
+      if (this.throttle('plough', 0.09)) this.api.blip(110 + Math.random() * 40, 0.05, 'triangle', 0.7, 0.35);
     }
     mineChunk(i) {
       this.alive[i] = 0; this.minedAt[i] = this.time;

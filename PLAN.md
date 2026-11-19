@@ -48,7 +48,8 @@ CLEARED (★) in the menu. Clearing all 5 unlocks a secret ending/credits.
 - **Loop:** drill into ore → cart fills → unload on **SELL** → grinder turns ore into a coin pile → drive
   over coins → park on an **upgrade pad** (money drains in) → dig deeper.
 - **Ore bands** (16 units deep each): Copper $1 → Silver $3 → Gold $8 → Emerald $25 → Ruby $70 → Diamond $200.
-  Each needs the matching pickaxe level; mined ore regrows after 40s.
+  Each needs the matching pickaxe level; mined ore regrows after 2 minutes. A full cart ploughs
+  mineable ore aside (not collected), so regrown ore can never trap you away from base.
 - **Upgrades:** Pickaxe (tier + drill speed, 6 lv), Engine (speed, 8 lv), Cart (20 → 400 ore, 10 lv),
   Grinder (x1 → x3.25 value + speed, 10 lv), Auto Collect (vault + vacuum tube, 5 lv).
 - **Milestones** (total earned): $100, $500, $2K, $6K, $20K, $60K, $150K, $350K, $650K, **$1M = cleared**.
