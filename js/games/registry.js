@@ -9,10 +9,11 @@ window.GAMES = [
   { id: 'tower', name: 'NUMBER TOWER', tagline: 'Climb 125 towers. Pick your gates. Beat the bigger number.',
     adHook: 'ONLY 1% PASS LEVEL 47!', color: '#ffb81c', dark: '#d9860b', genre: 'Number puzzle', levels: 10,
     scripts: ['js/games/tower/logic.js', 'js/games/tower/levels.js', 'js/games/tower/scenes.js', 'js/games/tower/tower.js'] },
+  { id: 'pick', name: 'PICK ONE!', tagline: 'Bo and Pip are in trouble. Pick the item that saves them!',
+    adHook: '99% PICK WRONG! 🤔', color: '#8d5bff', dark: '#5d2fd1', genre: 'Choice puzzle', levels: 10,
+    scripts: ['js/games/pick/art.js', 'js/games/pick/levels.js', 'js/games/pick/pick.js'] },
   { id: 'merge', name: 'MERGE MAYHEM', tagline: 'Merge your troops. Crush the boss army.',
     adHook: 'LVL 1 → LVL 999!!', color: '#2fb4ff', dark: '#1479c4', genre: 'Merge + auto-battle', levels: 10 },
-  { id: 'doors', name: 'DOOR OF DOOM', tagline: 'Pick the right door… before time runs out.',
-    adHook: 'WHICH ONE?? 🤔', color: '#8d5bff', dark: '#5d2fd1', genre: 'Split-second choice puzzle', levels: 10 },
   { id: 'hole', name: 'GLUTTON HOLE', tagline: 'Swallow the whole city. Grow HUGE.',
     adHook: 'SO SATISFYING!!! 😱', color: '#27c46b', dark: '#13894a', genre: 'Timed swallow arcade', levels: 10 },
 ];

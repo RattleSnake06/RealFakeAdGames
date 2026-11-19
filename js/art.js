@@ -98,22 +98,19 @@
         ${sparkle(306, 110, .9)}${sparkle(196, 112, .6, '#ffd21c')}${sparkle(150, 60, .8)}
       </svg>`,
 
-    doors: `
-      <svg viewBox="0 0 320 200" aria-hidden="true">${ground}
-        <g stroke="${OL}" stroke-width="5" stroke-linejoin="round">
-          <path d="M24 186 V84 A38 38 0 0 1 100 84 V186 Z" fill="#ff6a3d"/>
-          <path d="M122 186 V84 A38 38 0 0 1 198 84 V186 Z" fill="#3db8ff"/>
-          <path d="M220 186 V84 A38 38 0 0 1 296 84 V186 Z" fill="#ffd21c"/>
-          <circle cx="88" cy="140" r="5" fill="#fff"/><circle cx="186" cy="140" r="5" fill="#fff"/><circle cx="284" cy="140" r="5" fill="#fff"/>
-        </g>
-        <path d="M62 132 C42 118 52 96 62 82 C64 96 74 96 72 86 C86 100 84 126 62 132Z" fill="#ffd21c" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/>
-        <path d="M62 128 C54 120 58 110 62 104 C64 112 70 112 68 108 C72 116 70 126 62 128Z" fill="#fff"/>
-        <path d="M134 128 Q148 122 160 128 T186 128" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
-        <path d="M146 124 L160 88 L174 124 Z" fill="#5a6b8c" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/>
-        <text x="258" y="134" font-size="54" text-anchor="middle" fill="#fff" stroke="${OL}" stroke-width="7" paint-order="stroke" font-family="'Lilita One', sans-serif">?</text>
-        ${blob(134, 140, 54, '#f2f2ff')}
-        <text x="210" y="52" font-size="30" fill="#fff" stroke="${OL}" stroke-width="6" paint-order="stroke" font-family="'Lilita One', sans-serif" transform="rotate(12 210 52)">?</text>
-        <text x="102" y="44" font-size="22" fill="#fff" stroke="${OL}" stroke-width="5" paint-order="stroke" font-family="'Lilita One', sans-serif" transform="rotate(-14 102 44)">?</text>
+    pick: `
+      <svg viewBox="0 0 320 200" aria-hidden="true">
+        <g stroke="#fff" stroke-width="3" opacity=".55" stroke-linecap="round">${[[40, 20], [90, 50], [150, 14], [210, 40], [270, 18], [60, 90], [250, 80], [120, 96]].map(([x, y]) => `<path d="M${x} ${y} l-6 18"/>`).join('')}</g>
+        ${blob(70, 46, 70, '#9fdcff')}${blob(140, 50, 62, '#ffb3d0')}
+        <path d="M60 70 L52 74 M60 84 L52 86 M212 70 L220 74 M212 84 L220 86" stroke="${OL}" stroke-width="3.5" stroke-linecap="round"/>
+        <rect x="70" y="128" width="180" height="62" rx="12" fill="#fff" stroke="${OL}" stroke-width="5"/>
+        <rect x="82" y="136" width="70" height="46" rx="9" fill="#ffc21c" stroke="${OL}" stroke-width="4"/>
+        <rect x="168" y="136" width="70" height="46" rx="9" fill="#ffc21c" stroke="${OL}" stroke-width="4"/>
+        <path d="M94 160 Q117 134 140 160 Q134 156 128 160 Q122 156 117 160 Q112 156 106 160 Q100 156 94 160Z" fill="#b84ae8" stroke="${OL}" stroke-width="3"/><path d="M117 160 V174 Q117 178 112 176" fill="none" stroke="${OL}" stroke-width="3.5" stroke-linecap="round"/>
+        <path d="M203 142 L224 176 H182Z" fill="#ff8a3d" stroke="${OL}" stroke-width="3.5" stroke-linejoin="round"/><path d="M203 176 L199 162 L203 154 L207 162Z" fill="${OL}"/>
+        <path d="M214 196 l-6 -26 q-2 -8 6 -8 q6 0 6 8 v6 q8 -4 12 2 q8 -2 10 4 q8 0 8 8 v10Z" fill="#fff" stroke="${OL}" stroke-width="3.5" stroke-linejoin="round"/>
+        <text x="280" y="70" font-size="40" text-anchor="middle" fill="#fff" stroke="${OL}" stroke-width="7" paint-order="stroke" font-family="'Lilita One', sans-serif" transform="rotate(12 280 70)">?</text>
+        ${sparkle(30, 150, .8, '#ffe14d')}
       </svg>`,
 
     hole: `

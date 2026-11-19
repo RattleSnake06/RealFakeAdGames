@@ -36,8 +36,8 @@ game's specific minigames, characters or look.
 |---|------|----------|---------------|--------------|
 | 1 | **Ore Rush** ✅ playable | "$0 → $1 BILLION!!" digger ploughing through piles of shiny ore | 3D arcade-idle: drive into ore, sell at the grinder, upgrade, prestige 5 times, reach the Prismite core. | three.js, instanced ore field, upgrade economy, prestige + perks |
 | 2 | **Number Tower** ✅ playable | "Only 1% pass level 47!" hero with a number climbing towers of numbered enemies | 125 hand-checked number puzzles: climb, pick gates, beat enemies with a bigger number, reach the boss. | DOM board, rules engine + solver, level generator, stars, outfits |
-| 3 | **Merge Mayhem** | "LVL 1 → LVL 999" army merging | Buy units, drag identical ones to merge, press FIGHT, auto-battle vs. boss army. | Drag & drop grid, merge rules, coins, simple auto-battler |
-| 4 | **Door of Doom** | "Which one??" 3 doors: lava, shark, lion… | Quick-thinking logic: pick the safe door/item before the timer ends. Escalating trick questions. | Scene/choice data (JSON), timer, reaction animations |
+| 3 | **Pick One!** ✅ playable | "99% pick wrong!" a couple in trouble (rain, shark…) and 2-3 items to choose from | 50 levels x 3 scenes: pick the item that saves Bo & Pip; wrong picks play a funny fail and cost a heart. | Scene composer (backgrounds, hazards, threats, moods), item library, timers |
+| 4 | **Merge Mayhem** | "LVL 1 → LVL 999" army merging | Buy units, drag identical ones to merge, press FIGHT, auto-battle vs. boss army. | Drag & drop grid, merge rules, coins, simple auto-battler |
 | 5 | **Glutton Hole** | "SATISFYING!!!" hole swallowing a city | Move a hole; swallow objects smaller than you to grow; hit the % target before time runs out. | Top-down movement, size checks, falling-in animation, scoring |
 
 Each game has **10 steps of progress** (levels, or ore depth for Ore Rush). Finishing the last one marks it
@@ -107,6 +107,19 @@ CLEARED (★) in the menu. Clearing all 5 unlocks a secret ending/credits.
 - **Debug:** `index.html?debug` exposes `NT` (e.g. `NT.d.unlocked = 125; NT.openLevel(99)`).
 - **Next for this game:** playtest and hand-tune favourite levels, a "daily tower", sound polish.
 
+## Game 3: Pick One! (built)
+- **Loop:** each level is a 3-scene mini story ("Rainy Hike": downpour → cold night → grumpy bear). Bo and Pip
+  are in trouble; tap the item that gets them out. Right: the item flies in and does its job (shield, place,
+  give, throw at the threat, or ride away), the blobs cheer. Wrong: a funny fail (the bomb goes BOOM, the
+  umbrella flips inside out, the shark enjoys the water gun), the item is crossed out and you lose a heart.
+- **Difficulty:** levels 1-10 show 2 items, 11-25 show 3, 26-50 show 4 (the most tempting wrong item always
+  appears). Levels 21+ have a countdown (10s → 8s → 6s). 3 hearts per level.
+- **Stars:** 3 = no wrong picks, 2 = one, 1 = two. New stars pay shared coins.
+- **Content:** `js/games/pick/levels.js` (50 levels, 150 scenes; easy to add more), art library in
+  `js/games/pick/art.js`: 12 backgrounds (+ night), 13 threats, 48 items, Bo & Pip with 9 moods, 16 hazard
+  effects (rain, snow, heat, wind, fire, flood, lava, darkness, falling rocks, quicksand, sinking, ice, web…).
+- **Debug:** `index.html?debug` exposes `PK` (e.g. `PK.d.unlocked = 50; PK.openLevel(44)`).
+
 ## Milestones
 **M0 – Shell (DONE)**: animated title (logo, sunburst, hopping Blobs, "press any button"),
 game select with a big featured card + 5 game tiles, coin & trophy counters, Wardrobe/Options/Credits,
@@ -127,7 +140,7 @@ games load on demand, get `{ data, save, settings, blip, setProgress, clear }`, 
 **M2 – Games** (each one is its own branch / PR)
 1. ✅ Ore Rush (3D arcade idle)
 2. ✅ Number Tower (number puzzle, 125 levels)
-3. Door of Doom (mostly data + UI, fastest win)
+3. ✅ Pick One! (choice puzzle, 50 levels; replaced the Door of Doom idea)
 4. Glutton Hole (movement + collision; can reuse Ore Rush's 3D setup)
 5. Merge Mayhem (drag/drop + auto-battle)
 
