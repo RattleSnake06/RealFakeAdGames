@@ -218,8 +218,16 @@
       if (state.screen === 'menu') $$('.tile')[state.selected]?.focus({ preventScroll: true });
       if (state.screen === 'game') { document.activeElement?.blur?.(); current?.resume(); }
     },
-    'reset-progress': () => {
-      if (!confirm('Reset all progress?')) return;
+    'reset-progress': (btn) => {
+      // Two taps instead of confirm(): embedded viewers block browser dialogs.
+      clearTimeout(btn._t);
+      if (btn.dataset.armed !== '1') {
+        btn.dataset.armed = '1'; btn.textContent = 'TAP AGAIN TO RESET';
+        btn._t = setTimeout(() => { btn.dataset.armed = ''; btn.textContent = 'RESET PROGRESS'; }, 3000);
+        return;
+      }
+      btn.dataset.armed = ''; btn.textContent = 'PROGRESS RESET ✓';
+      btn._t = setTimeout(() => { btn.textContent = 'RESET PROGRESS'; }, 2000);
       const settings = state.save.settings;
       unmountGame();
       state.save = { ...defaults(), settings };
@@ -243,7 +251,7 @@
 
   document.addEventListener('click', (e) => {
     const t = e.target.closest('[data-action]');
-    if (t && actions[t.dataset.action]) { e.stopPropagation(); return actions[t.dataset.action](); }
+    if (t && actions[t.dataset.action]) { e.stopPropagation(); return actions[t.dataset.action](t); }
     // "Press any button": any click on the title screen starts.
     if (state.screen === 'title' && !overlayOpen()) actions.start();
   });
