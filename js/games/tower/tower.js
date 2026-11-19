@@ -109,6 +109,10 @@
     constructor(stage, api) {
       this.stage = stage; this.api = api;
       const d = (this.d = api.data);
+      if (d.v !== 2) { // the climb-only puzzles were replaced; outfits and coins are kept
+        d.stars = {}; d.unlocked = 1; d.world = 0; d.v = 2;
+        api.setProgress(0);
+      }
       d.stars ??= {}; d.unlocked ??= 1; d.world ??= 0;
       d.outfit ??= { color: 'blue', hat: 'none' };
       d.owned ??= { color: ['blue'], hat: ['none'] };
@@ -230,6 +234,7 @@
       const L = this.L;
       this.s = TL.fresh(L.start); this.f = -1; this.c = -1; this.path = []; this.done = new Set();
       this.busy = false; this.t0 = null; this.elapsed = 0; this.over = false; this.hintCell = null;
+      clearTimeout(this._endT); // a win/lose card still on its way must not cover the fresh level
       const th = THEMES[L.world];
       this.stage.style.setProperty('--nt-a', th.sky[0]); this.stage.style.setProperty('--nt-b', th.sky[1]);
       this.setWorld(L.world);
@@ -276,6 +281,7 @@
       const parts = [];
       parts.push(`<div class="nt-ground" style="height:${GROUND}px"></div>`);
       // hero's little tower
+      parts.push(`<div class="nt-bridge home" style="left:${SIDE + HERO_W - 4}px;bottom:${GROUND + 4}px;width:${HERO_GAP + 6}px"></div>`);
       parts.push(`<div class="nt-tower nt-home" style="left:${SIDE}px;bottom:${GROUND - 6}px;width:${HERO_W}px;height:${RH + 6}px"></div>
         <div class="nt-roof" style="left:${SIDE - 10}px;bottom:${GROUND + RH}px;width:${HERO_W + 20}px"><svg viewBox="0 0 100 60" preserveAspectRatio="none"><path d="M3 58 L50 4 L97 58 Z" fill="${th.roofA}" stroke="#2a1650" stroke-width="5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>${th.snow ? '<path d="M22 32 L50 4 L78 32 Q68 26 62 34 Q56 26 50 34 Q44 26 38 34 Q32 26 22 32Z" fill="#fff" stroke="#2a1650" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>' : '<path d="M30 40 H70" stroke="#fff" stroke-width="3" opacity=".35" vector-effect="non-scaling-stroke"/>'}</svg></div>
         <div class="nt-room home" style="left:${SIDE + 8}px;bottom:${GROUND + 6}px;width:${HERO_W - 16}px;height:${RH - 12}px"></div>`);
@@ -353,6 +359,7 @@
         case 'torch': ico = ICONS.torch; val = '<span class="nt-val item">TORCH</span>'; break;
         case 'chest': ico = ICONS.chest; val = '<span class="nt-val item">TREASURE</span>'; break;
         case 'switch': ico = ICONS.switch; val = '<span class="nt-val item">SWITCH</span>'; break;
+        case 'wall': return '<span class="nt-wall-face"></span>';
         default: break;
       }
       const ice = cell.frozen ? '<span class="nt-ice">❄</span>' : '';
@@ -437,9 +444,13 @@
         this.sfx('no');
         const cell = TL.cellAt(this.L, f, c);
         const reach = TL.moves(this.L, this.f, this.c, { ...this.s, keys: 99 }).some((m) => m.f === f && m.c === c);
-        if (reach && cell.locked) this.toast('🔒 Locked! Beat a key keeper first', 'warn');
-        else if (f <= this.f) this.toast('You can only climb UP', 'warn');
-        else this.toast(f > this.f + 1 ? 'One floor at a time!' : 'No bridge that way ✕', 'warn');
+        const beside = f === this.f && Math.abs(c - this.c) === 1;
+        if (cell.t === 'wall') this.toast('🧱 Solid wall! Find a way around', 'warn');
+        else if (reach && cell.locked) this.toast('🔒 Locked! Beat a key keeper first', 'warn');
+        else if (f >= 0 && f < this.L.H && TL.isUsed(this.L, this.s, f, c)) this.toast('Already used that room', 'warn');
+        else if (f < this.f) this.toast("You can't go back down", 'warn');
+        else if (beside) this.toast('No bridge that way ✕', 'warn');
+        else this.toast('One room at a time: left, right or up', 'warn');
         return;
       }
       this.move(f, c);
@@ -456,7 +467,7 @@
       await wait(420);
       if (this.disposed) return;
       const cell = TL.cellAt(this.L, f, c);
-      const { s, ev } = TL.enter(this.s, cell);
+      const { s, ev } = TL.step(this.L, this.s, f, c);
       const roomEl = this.roomEl(f, c);
       for (const e of ev) {
         if (this.disposed) return;
@@ -546,7 +557,8 @@
       this.over = true; this.busy = false; this.attempts++;
       const fight = ev.find((x) => x.k === 'fight' && !x.win);
       const why = fight ? `Your <b>${fmtN(fight.from)}</b> wasn't more than <b>${fmtN(fight.cost)}</b>.` : 'Your power hit zero.';
-      setTimeout(() => {
+      clearTimeout(this._endT);
+      this._endT = setTimeout(() => {
         if (this.disposed) return;
         this.modal(`
           <div class="panel-head b-red">DEFEATED!</div>
@@ -578,7 +590,8 @@
       this.sfx('clear');
       const got = [mask & 1, mask & 2, mask & 4];
       const why = ['Cleared the tower', clean ? 'No deaths, restarts or hints' : this.hintUsed ? 'Used a hint' : `Took ${this.attempts + 1} tries`, L.star.text];
-      setTimeout(() => {
+      clearTimeout(this._endT);
+      this._endT = setTimeout(() => {
         if (this.disposed) return;
         this.modal(`
           <div class="panel-head b-green">TOWER CLEARED!</div>
@@ -603,7 +616,7 @@
       const walk = (f, c, s, first) => {
         if (found) return;
         for (const m of TL.moves(L, f, c, s)) {
-          const r = TL.enter(s, TL.cellAt(L, m.f, m.c));
+          const r = TL.step(L, s, m.f, m.c);
           if (r.s.dead) continue;
           const fm = first || m;
           if (m.f === L.H) { found = fm; return; }
@@ -661,7 +674,7 @@
     resume() { this.running = true; }
     destroy() {
       this.disposed = true;
-      clearTimeout(this._tick); clearTimeout(this._toastT);
+      clearTimeout(this._tick); clearTimeout(this._toastT); clearTimeout(this._endT);
       this.api.save();
       this.ro.disconnect();
       this.stage.removeEventListener('click', this.onClick);

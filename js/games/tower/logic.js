@@ -3,9 +3,10 @@
    Works in the browser (window.TowerLogic) and in Node (require).
 
    Board: W towers side by side, H floors each (floor 0 at the bottom), plus a
-   boss room on top. The hero starts at the base, then climbs one floor per move:
-   straight up, or across a bridge to the tower next door. Any top-floor room
-   leads to the boss.
+   boss room on top. The hero's home tower is bridged to the bottom-left room.
+   Each move goes one room LEFT, RIGHT (across a bridge to the next tower) or UP.
+   You can't go down, and every room can only be entered once. Any top-floor
+   room leads up to the boss.
 
    Combat (Option A): beat an enemy if your power is higher; you keep the
    difference. 300 vs 250 → you win with 50 left. Equal or lower → defeated.
@@ -34,7 +35,10 @@
   const fresh = (start) => ({
     p: start, keys: 0, torches: 0, sw: false, curse: false,
     neg: false, treasure: false, opt: 0, kills: 0, unlocks: 0, thaws: 0, switches: 0, rewards: 0, goodFlips: 0, dead: false,
+    used: 0, // bit mask of rooms already entered (bit = f * W + c)
   });
+  const bit = (L, f, c) => 2 ** (f * L.W + c);
+  const isUsed = (L, s, f, c) => Math.floor(s.used / bit(L, f, c)) % 2 === 1;
 
   const canEnter = (s, cell) => !!cell && cell.t !== 'wall' && (!cell.locked || s.keys > 0);
 
@@ -101,16 +105,24 @@
     return !L.br || !L.br[f] || L.br[f][lo] !== 0;
   };
 
-  // Rooms you can move to from position (f, c). f = -1 is the start, f = H is the boss.
+  // Rooms you can move to from (f, c): left, right (over a bridge) or up. f = -1 is home, f = H is the boss.
   function moves(L, f, c, s) {
-    if (f === L.H - 1) return [{ f: L.H, c: -1 }];
     if (f >= L.H) return [];
-    const nf = f + 1, out = [];
-    const cols = f < 0 ? [...Array(L.W).keys()] : [c - 1, c, c + 1].filter((x) => x >= 0 && x < L.W && (x === c || bridgeOpen(L, nf, c, x)));
-    for (const x of cols) if (canEnter(s, L.grid[nf][x])) out.push({ f: nf, c: x });
+    const ok = (ff, cc) => !isUsed(L, s, ff, cc) && canEnter(s, L.grid[ff][cc]);
+    if (f < 0) return ok(0, 0) ? [{ f: 0, c: 0 }] : [];
+    const out = [];
+    for (const x of [c - 1, c + 1]) if (x >= 0 && x < L.W && bridgeOpen(L, f, c, x) && ok(f, x)) out.push({ f, c: x });
+    if (f === L.H - 1) out.push({ f: L.H, c: -1 });
+    else if (ok(f + 1, c)) out.push({ f: f + 1, c });
     return out;
   }
   const cellAt = (L, f, c) => (f === L.H ? L.boss : L.grid[f][c]);
+  // enter a room and mark it used
+  function step(L, s, f, c) {
+    const r = enter(s, cellAt(L, f, c));
+    if (f < L.H) r.s.used = s.used + bit(L, f, c);
+    return r;
+  }
 
   // Explore every route. Each result: { path, s (final state), win, pre (power before the boss) }
   function solve(L, opts = {}) {
@@ -127,7 +139,7 @@
           out.push({ path: [...path, [m.f, m.c]], s: r.s, win: !r.s.dead, pre, top: s });
           continue;
         }
-        const r = enter(s, L.grid[m.f][m.c]);
+        const r = step(L, s, m.f, m.c);
         const np = [...path, [m.f, m.c]];
         if (r.s.dead) { out.push({ path: np, s: r.s, win: false }); continue; }
         walk(m.f, m.c, r.s, np);
@@ -146,7 +158,7 @@
       if (!ms.length) return { path, s, win: false };
       let best = null;
       for (const m of ms) {
-        const r = enter(s, cellAt(L, m.f, m.c));
+        const r = step(L, s, m.f, m.c);
         const score = r.s.dead ? -1 : r.s.p;
         if (!best || score > best.score) best = { m, r, score };
       }
@@ -172,5 +184,5 @@
     }
   }
 
-  return { OPS, NEG, FLIP, SYMBOL, label, fresh, canEnter, gateOp, enter, moves, cellAt, solve, greedy, starMet, bridgeOpen };
+  return { OPS, NEG, FLIP, SYMBOL, label, fresh, canEnter, gateOp, enter, step, moves, cellAt, solve, greedy, starMet, bridgeOpen, isUsed };
 });

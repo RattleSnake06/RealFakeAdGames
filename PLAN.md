@@ -72,8 +72,9 @@ CLEARED (★) in the menu. Clearing all 5 unlocks a secret ending/credits.
   balance pass from real playtests, real-phone performance test.
 
 ## Game 2: Number Tower (built)
-- **Rules:** climb one floor per move, straight up or across a bridge (✕ = no bridge). Gates change your
-  power (+ − × ÷). Combat is a straight comparison: beat an enemy if your number is bigger and keep the
+- **Rules:** move one room at a time LEFT, RIGHT (across a bridge between towers; ✕ = no bridge) or UP.
+  You can't go back down and each room can only be used once. Your home tower is bridged to the bottom-left
+  room; any top-floor room leads up to the boss. Gates change your power (+ − × ÷). Combat is a straight comparison: beat an enemy if your number is bigger and keep the
   difference (300 vs 250 → 50 left). The boss waits on top. Every level has a fixed start power and layout;
   nothing carries over between levels.
 - **125 levels, 5 worlds**, each world adds mechanics:
@@ -84,7 +85,8 @@ CLEARED (★) in the menu. Clearing all 5 unlocks a secret ending/credits.
 - **Difficulty** ramps Easy → Normal → Medium → Hard → Expert inside each world through puzzle design:
   fewer winning routes, gimmicks that must be used, and from Medium up the "always take the biggest number"
   player loses. Expert levels usually have exactly one winning route.
-- **Gimmicks** (every level has its own name): Fork in the Road, Multiplier Trap, Add Then Multiply,
+- **Gimmicks** (every level has its own name): The Long Way Round (walls and deadly rooms force you sideways),
+  Fork in the Road, Multiplier Trap, Add Then Multiply,
   Optional Enemy, Hidden Treasure, No Room for Error, Locked Floor, Cold Snap, Sequence, Armored Knights,
   Spoils of War, Lava Floor, Power Thief, Operation Switch, Cursed Blade, The Gauntlet.
 - **Stars:** ★ clear · ★ no deaths, restarts or hints · ★ a level-specific challenge (finish with X+ power,
@@ -95,6 +97,7 @@ CLEARED (★) in the menu. Clearing all 5 unlocks a secret ending/credits.
   a player could really have on each floor, plays every route, and picks the boss number so the right share
   of routes win. It writes `js/games/tower/levels.js` (deterministic; rerun with `node tools/gen-tower-levels.js`).
   Every level is checked: solvable, stored solution wins, third star possible, greedy fails from Medium up.
+  Winning routes use sideways moves in ~90% of cases (about 3 per stored solution).
 - **Look:** every world has its own painted, animated backdrop (`js/games/tower/scenes.js`): Grasslands
   (smiling sun, hills, castle, butterflies, pollen), Frozen Kingdom (aurora, snowy peaks, frozen lake, snowman,
   falling snow), Burning Lands (erupting volcano, lava river, embers), Cursed Realm (giant moon, bats, haunted

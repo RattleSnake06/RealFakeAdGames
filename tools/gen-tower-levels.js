@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* Generates js/games/tower/levels.js — the 125 fixed Number Tower levels.
    Run:  node tools/gen-tower-levels.js
+   Movement: left, right (across bridges) or up, one room at a time, each room once.
    Every level is built around a gimmick, then checked by the solver in logic.js:
    - it must be solvable,
    - harder levels must have fewer winning routes (expert: one or two),
@@ -33,8 +34,16 @@ function nice(n, messy) {
   for (const s of steps) if (Math.abs(s * mag - n) < Math.abs(best - n)) best = s * mag;
   return Math.round(best);
 }
-const key = (p) => p.map((x) => x.join(',')).join(';');
 const has = (res, f, c) => res.path.some(([a, b]) => a === f && b === c);
+// sideways moves in a route (consecutive rooms on the same floor)
+const sideways = (res) => res.path.reduce((n, p, i) => n + (i > 0 && p[0] === res.path[i - 1][0] ? 1 : 0), 0);
+// a random room that isn't the entrance (0,0)
+function spot(c, fMin, fMax) {
+  for (;;) {
+    const f = fMin + Math.floor(c.r() * (fMax - fMin + 1)), col = Math.floor(c.r() * c.W);
+    if (f !== 0 || col !== 0) return [f, col];
+  }
+}
 
 // ---------------------------------------------------------------- worlds
 const WORLDS = [
@@ -55,16 +64,16 @@ const T = {};
 
 T.FORK = {
   names: ['THE FORK IN THE ROAD', 'LEFT OR RIGHT?', 'NO WAY BACK', 'TWO PATHS', 'POINT OF NO RETURN', 'THE SPLIT', 'CHOOSE A SIDE', 'PARTING WAYS'],
-  tip: 'No bridges between the two sides. Pick your tower at the bottom and live with it.',
-  minW: 3,
+  tip: 'Above the ground floor there are no bridges between the two sides. Choose your side on the way in.',
+  minW: 3, minH: 3,
   plant(c) {
-    const sp = c.W === 2 ? 1 : 1 + Math.floor(c.r() * (c.W - 1));
-    for (let f = 0; f < c.H; f++) c.br[f][sp - 1] = 0;
+    const sp = 1 + Math.floor(c.r() * (c.W - 1));
+    for (let f = 1; f < c.H; f++) c.br[f][sp - 1] = 0;
     c.split = sp;
   },
   accept(c, wins, g) {
-    const side = (w) => (w.path[0][1] < c.split ? 0 : 1);
-    return wins.every((w) => side(w) === side(wins[0])) && side(g) !== side(wins[0]);
+    const side = (w) => { const up = w.path.find(([f]) => f >= 1); return up && up[1] >= 0 && up[1] < c.split ? 0 : 1; };
+    return wins.length > 0 && wins.every((w) => side(w) === side(wins[0])) && side(g) !== side(wins[0]);
   },
 };
 T.TRAP = {
@@ -72,15 +81,14 @@ T.TRAP = {
   tip: 'That huge multiplier looks tempting. Look at what waits above it.',
   minH: 3,
   plant(c) {
-    const f = Math.floor(c.r() * (c.H - 2)), col = Math.floor(c.r() * c.W);
+    const [f, col] = spot(c, 0, c.H - 2);
     c.grid[f][col] = { t: 'gate', op: 'x', v: pick(c.r, [3, 4, 4, 5]) };
     const thief = c.world >= 3 && c.r() < 0.6;
-    for (const x of [col - 1, col, col + 1]) {
-      if (x < 0 || x >= c.W || (x !== col && c.br[f + 1][Math.min(x, col)] === 0)) continue;
-      c.grid[f + 1][x] = thief
-        ? { t: 'enemy', ab: 'thief', v: nice(c.E(f) * U(c.r, 1.2, 2.2), c.messy) }
-        : { t: 'enemy', v: nice(c.E(f) * U(c.r, 2.6, 4.2), c.messy) };
-    }
+    const foe = () => (thief
+      ? { t: 'enemy', ab: 'thief', v: nice(c.E(f) * U(c.r, 1.2, 2.2), c.messy) }
+      : { t: 'enemy', v: nice(c.E(f) * U(c.r, 2.6, 4.2), c.messy) });
+    c.grid[f + 1][col] = foe();
+    for (const x of [col - 1, col + 1]) if (x >= 0 && x < c.W && (f !== 0 || x !== 0) && c.r() < 0.7) c.grid[f][x] = foe();
     c.trap = [f, col];
   },
   accept: (c, wins, g) => wins.every((w) => !has(w, ...c.trap)) && has(g, ...c.trap) && !g.win,
@@ -90,16 +98,19 @@ T.ORDER = {
   tip: 'Adding before you multiply makes the bonus multiply too.',
   minW: 2, minH: 3,
   plant(c) {
-    const f = Math.floor(c.r() * (c.H - 2)), a = Math.floor(c.r() * (c.W - 1)), b = a + 1;
+    const f = 1 + Math.floor(c.r() * (c.H - 2)), a = Math.floor(c.r() * (c.W - 1)), b = a + 1;
     const X = nice(c.E(f) * U(c.r, 0.45, 0.9), c.messy), m = pick(c.r, [2, 3]);
-    c.grid[f][a] = { t: 'gate', op: '+', v: X }; c.grid[f + 1][a] = { t: 'gate', op: 'x', v: m };
-    c.grid[f][b] = { t: 'gate', op: 'x', v: m }; c.grid[f + 1][b] = { t: 'gate', op: '+', v: X };
+    const plus = { t: 'gate', op: '+', v: X }, times = { t: 'gate', op: 'x', v: m };
+    const swap = c.r() < 0.5;
+    c.grid[f][a] = swap ? times : plus; c.grid[f + 1][a] = swap ? { ...plus } : { ...times };
+    c.grid[f][b] = swap ? { ...plus } : { ...times }; c.grid[f + 1][b] = swap ? { ...times } : { ...plus };
     c.br[f + 1][a] = 0;
-    if (c.r() < 0.5) { const t = c.grid[f][a]; c.grid[f][a] = c.grid[f][b]; c.grid[f][b] = t; const u = c.grid[f + 1][a]; c.grid[f + 1][a] = c.grid[f + 1][b]; c.grid[f + 1][b] = u; }
-    c.order = f;
+    c.plus = [[f, swap ? b : a], [f + 1, swap ? a : b]];
+    c.times = [[f, swap ? a : b], [f + 1, swap ? b : a]];
   },
-  accept(c, wins, g, all) {
-    const good = (w) => { const s = w.path.find(([ff]) => ff === c.order); const cell = s && c.grid[c.order][s[1]]; return cell && cell.op === '+'; };
+  accept(c, wins, g) {
+    const first = (w, cells) => { const i = w.path.findIndex(([f, x]) => cells.some(([ff, xx]) => ff === f && xx === x)); return i < 0 ? 1e9 : i; };
+    const good = (w) => { const p = first(w, c.plus), t = first(w, c.times); return p < 1e9 && t < 1e9 && p < t; };
     return wins.length > 0 && wins.every(good) && !g.win;
   },
 };
@@ -237,14 +248,23 @@ T.CURSE = {
   tip: '💀 Beating a cursed enemy flips your next gate: ÷ becomes ×, − becomes +.',
   minH: 3,
   plant(c) {
-    const f = Math.floor(c.r() * (c.H - 2)), col = Math.floor(c.r() * c.W);
+    const [f, col] = spot(c, 0, c.H - 2);
     c.grid[f][col] = { t: 'enemy', ab: 'curse', v: nice(c.E(f) * U(c.r, 0.3, 0.6), c.messy) };
-    for (const x of [col - 1, col, col + 1]) {
-      if (x < 0 || x >= c.W || c.r() < 0.35) continue;
-      c.grid[f + 1][x] = c.r() < 0.5 ? { t: 'gate', op: '/', v: pick(c.r, [3, 4]) } : { t: 'gate', op: '-', v: nice(c.E(f) * U(c.r, 0.6, 1.0), c.messy) };
-    }
+    const bad = () => (c.r() < 0.5 ? { t: 'gate', op: '/', v: pick(c.r, [3, 4]) } : { t: 'gate', op: '-', v: nice(c.E(f) * U(c.r, 0.6, 1.0), c.messy) });
+    c.grid[f + 1][col] = bad();
+    for (const x of [col - 1, col + 1]) if (x >= 0 && x < c.W && (f !== 0 || x !== 0) && c.r() < 0.6) c.grid[f][x] = bad();
   },
   accept: (c, wins) => wins.length > 0 && wins.every((w) => w.s.goodFlips > 0),
+};
+T.DETOUR = {
+  names: ['THE LONG WAY ROUND', 'DETOUR', 'GO AROUND', 'SIDE STEP', 'SCENIC ROUTE', 'ROADBLOCK', 'SIDEWAYS', 'THE HALLWAY'],
+  tip: 'Straight up looks deadly. Walk sideways along the floors and find another way.',
+  minW: 2, minH: 2,
+  plant(c) {
+    if (c.H > 1) c.grid[1][0] = { t: 'enemy', v: nice(c.E(1) * U(c.r, 2.5, 4), c.messy) };
+    for (let n = 0; n < 1 + Math.floor(c.r() * 3); n++) { const [f, col] = spot(c, 1, c.H - 1); c.grid[f][col] = { t: 'wall' }; }
+  },
+  accept: (c, wins, g) => wins.length > 0 && wins.every((w) => sideways(w) >= 2) && (!g.win || c.d < 2),
 };
 T.GAUNTLET = {
   names: ['THE GAUNTLET', 'BOSS TOWER', 'THE FINAL CLIMB', 'THRONE ROOM', 'THE SUMMIT'],
@@ -255,11 +275,11 @@ T.GAUNTLET = {
 };
 
 const POOLS = [
-  ['FORK', 'TRAP', 'ORDER', 'OPTIONAL', 'TREASURE', 'TIGHT'],
-  ['FROZEN', 'LOCK', 'SEQUENCE', 'FROZEN', 'LOCK', 'FORK', 'TRAP', 'OPTIONAL', 'TIGHT'],
-  ['ARMOR', 'SPOILS', 'LAVA', 'ARMOR', 'SPOILS', 'LAVA', 'TRAP', 'ORDER', 'TREASURE', 'TIGHT'],
-  ['THIEF', 'SWITCH', 'CURSE', 'THIEF', 'SWITCH', 'CURSE', 'FORK', 'OPTIONAL', 'TIGHT'],
-  ['SEQUENCE', 'SWITCH', 'CURSE', 'THIEF', 'SPOILS', 'LAVA', 'ARMOR', 'LOCK', 'FROZEN', 'TRAP', 'ORDER', 'TREASURE', 'TIGHT'],
+  ['DETOUR', 'FORK', 'TRAP', 'ORDER', 'OPTIONAL', 'TREASURE', 'TIGHT'],
+  ['FROZEN', 'LOCK', 'SEQUENCE', 'DETOUR', 'FROZEN', 'LOCK', 'FORK', 'TRAP', 'OPTIONAL', 'TIGHT'],
+  ['ARMOR', 'SPOILS', 'LAVA', 'DETOUR', 'ARMOR', 'SPOILS', 'LAVA', 'TRAP', 'ORDER', 'TREASURE', 'TIGHT'],
+  ['THIEF', 'SWITCH', 'CURSE', 'DETOUR', 'THIEF', 'SWITCH', 'CURSE', 'FORK', 'OPTIONAL', 'TIGHT'],
+  ['SEQUENCE', 'SWITCH', 'CURSE', 'THIEF', 'SPOILS', 'LAVA', 'DETOUR', 'ARMOR', 'LOCK', 'FROZEN', 'TRAP', 'ORDER', 'TREASURE', 'TIGHT'],
 ];
 const INTRO_FIRST = [null, 'FROZEN', 'ARMOR', 'THIEF', null];
 
@@ -268,6 +288,7 @@ function randomCell(c, f) {
   const r = c.r, w = c.world, E = c.E(f), m = c.messy;
   const mech = WORLDS[w].mech;
   const roll = r();
+  if (c.d >= 2 && f > 0 && r() < 0.05) return { t: 'wall' };
   if (roll < 0.36) { // enemy
     const e = { t: 'enemy', v: nice(E * U(r, 0.35, 0.95), m) };
     if (mech.includes('armor') && r() < 0.2) { e.ab = 'armor'; e.v = nice(E * U(r, 0.2, 0.45), m); }
@@ -300,20 +321,20 @@ function sizeFor(d, world, k, tpl, r) {
 // powers of every surviving partial route that has climbed floors 0..f-1
 function powersBefore(c, f) {
   if (f === 0) return [c.S];
-  const L = { W: c.W, H: c.H, grid: c.grid, br: c.br };
+  const L = { W: c.W, H: f, grid: c.grid, br: c.br }; // floors below f only; "up" from the top = into floor f
   const out = [];
   const walk = (ff, cc, s) => {
-    if (ff === f - 1) { out.push(s.p); return; }
+    if (out.length > 4000) return;
     for (const m of TL.moves(L, ff, cc, s)) {
-      if (m.f >= f) continue;
-      const r = TL.enter(s, L.grid[m.f][m.c]);
+      if (m.f >= f) { out.push(s.p); continue; }
+      const r = TL.step(L, s, m.f, m.c);
       if (!r.s.dead) walk(m.f, m.c, r.s);
     }
   };
   walk(-1, -1, TL.fresh(c.S));
   return out.length ? out : [c.S];
 }
-const MIN_ROUTES = [3, 5, 8, 12, 16];
+const MIN_ROUTES = [3, 6, 10, 16, 24];
 
 function build(i, tplName, attempt) {
   const world = Math.floor(i / 25), k = i % 25;
@@ -335,6 +356,7 @@ function build(i, tplName, attempt) {
     c.Emed[f] = Math.max(4, ps[Math.floor(ps.length * 0.55)]);
     c.grid[f] = [...Array(W)].map(() => randomCell(c, f));
   }
+  if (c.grid[0][0].t === 'wall') c.grid[0][0] = { t: 'empty' };
   if (tplName === 'GAUNTLET') c.pool = [pick(r, POOLS[world].slice(0, 3)), pick(r, POOLS[world].slice(3))];
   tpl.plant(c);
   return { c, tpl, d, world, k };
@@ -344,14 +366,11 @@ function evaluate(i, tplName, attempt) {
   const { c, tpl, d, world, k } = build(i, tplName, attempt);
   const L = { W: c.W, H: c.H, start: c.S, grid: c.grid, br: c.br, boss: { t: 'boss', v: 0 } };
   const all = TL.solve(L);
-  if (all.length > 20000 || all.length < MIN_ROUTES[d]) return null;
+  if (all.length > 30000 || all.length < MIN_ROUTES[d]) return null;
   const top = all.filter((x) => x.pre !== undefined).sort((a, b) => b.pre - a.pre);
   if (!top.length) return null;
   const distinct = [...new Set(top.map((x) => x.pre))];
   const total = all.length;
-  // The greedy route doesn't depend on the boss's number (the last move is always the boss).
-  const g0 = TL.greedy(L);
-  const gReached = g0.path.length && g0.path[g0.path.length - 1][0] === c.H && g0.s.p > 0;
   // try each possible boss threshold; keep the one closest to the difficulty target that passes the gimmick test
   let best = null;
   for (let j = 0; j < distinct.length; j++) {
@@ -367,7 +386,8 @@ function evaluate(i, tplName, attempt) {
     const boss = { t: 'boss', v: bossV };
     // the boss is the last fight, so each route's result follows from its power before the boss
     const wins = top.filter((x) => x.pre > bossV).map((x) => ({ ...x, win: true, s: TL.enter(x.top, boss).s }));
-    const g = { ...g0, win: gReached && g0.s.p > bossV };
+    // greedy play can walk sideways on the top floor instead of fighting, so it depends on the boss number
+    const g = TL.greedy({ ...L, boss });
     if (!wins.length) continue;
     if (d >= 2 && g.win) continue;
     if (!tpl.accept(c, wins, g, all)) continue;
@@ -394,15 +414,14 @@ function chooseStar(i, tpl, wins) {
 const E = (v, x = {}) => ({ t: 'enemy', v, ...x });
 const G = (op, v, x = {}) => ({ t: 'gate', op, v, ...x });
 const TUTORIAL = [
-  { name: 'PICK THE BIGGER NUMBER', tip: 'Tap a room to climb into it. Gates change your power.', start: 10, W: 2, H: 1,
+  { name: 'STEP RIGHT UP', tip: 'Tap a glowing room to move into it. You can go LEFT, RIGHT or UP, never down.', start: 10, W: 2, H: 1,
     grid: [[G('+', 5), G('-', 3)]], boss: 12, star: { type: 'time', v: 20, text: 'Finish in under 20s' } },
   { name: 'FIGHT!', tip: 'Beat enemies with a BIGGER number. You keep what is left: 20 vs 8 leaves 12.', start: 20, W: 2, H: 2,
-    grid: [[E(8), E(25)], [G('+', 10), G('+', 4)]], boss: 18, star: { type: 'power', v: 4, text: 'Finish with 4+ power' } },
-  { name: 'TIMES TWO', tip: '× multiplies your power. Sometimes it beats a plus.', start: 15, W: 2, H: 2,
-    grid: [[G('+', 10), G('x', 2)], [E(12), E(12)]], boss: 14, star: { type: 'power', v: 4, text: 'Finish with 4+ power' } },
-  { name: 'MIND THE BRIDGES', tip: 'Climb straight up, or cross a bridge to the next tower. Plan the whole route!', start: 40, W: 2, H: 3,
-    grid: [[G('/', 2), G('+', 5)], [G('x', 3), G('-', 10)], [E(30), G('+', 20)]], br: [[1], [1], [0]], boss: 100,
-    star: { type: 'time', v: 30, text: 'Finish in under 30s' } },
+    grid: [[E(8), E(25)], [G('+', 10), G('+', 4)]], boss: 18, star: { type: 'power', v: 8, text: 'Finish with 8+ power' } },
+  { name: 'TIMES TWO', tip: '× multiplies your power. Walk across the bridge to grab it first.', start: 15, W: 2, H: 2,
+    grid: [[{ t: 'empty' }, G('x', 2)], [E(12), G('+', 5)]], boss: 30, star: { type: 'power', v: 5, text: 'Finish with 5+ power' } },
+  { name: 'THE LONG WAY', tip: 'Straight up is deadly. Walk sideways first. Each room can only be used once!', start: 50, W: 3, H: 2,
+    grid: [[{ t: 'empty' }, G('+', 20), G('x', 2)], [E(200), E(60), G('+', 10)]], boss: 120, star: { type: 'time', v: 30, text: 'Finish in under 30s' } },
 ];
 
 // ---------------------------------------------------------------- main
@@ -427,7 +446,7 @@ function main() {
     let order;
     if (k === 24) order = ['GAUNTLET'];
     else if (k === 0 && INTRO_FIRST[world]) order = [INTRO_FIRST[world]];
-    else order = [pool[(k * 7 + world * 3) % pool.length]];
+    else order = [pool[(k * 3 + world) % pool.length]]; // 3 shares no factor with any pool size, so every template gets used
     order.push(...pool, 'TIGHT');
     let made = null;
     for (const name of order) {
@@ -465,6 +484,7 @@ function main() {
     curse: '💀 NEW: Beat a cursed enemy and your next gate flips: ÷ becomes ×, − becomes +.',
     switch: '🔄 NEW: Switches flip every rune gate to its other value.',
     chest: '💰 NEW: Treasure! Grab it for the third star.',
+    wall: '🧱 NEW: Solid walls block the way. Find a route around them.',
   };
   const seen = new Set();
   for (const L of levels) {
@@ -480,6 +500,7 @@ function main() {
       if (cell.ab === 'curse') found.add('curse');
       if (cell.t === 'switch' || cell.sw) found.add('switch');
       if (cell.t === 'chest' || cell.drop === 'chest') found.add('chest');
+      if (cell.t === 'wall') found.add('wall');
     };
     L.grid.forEach((row) => row.forEach(scan));
     const intros = [...found].filter((m) => !seen.has(m));

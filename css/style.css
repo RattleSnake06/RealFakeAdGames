@@ -697,3 +697,10 @@ input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 
 .nt-stage[data-world="4"] .nt-tower::before { background: repeating-linear-gradient(90deg, #ffd96e 0 18px, transparent 18px 30px); }
 .nt-stage[data-world="4"] .nt-walk { background: #ffd96e; }
 .nt-stage[data-world="2"] .nt-power, .nt-stage[data-world="3"] .nt-power { color: #b8f7ff; }
+/* solid wall rooms (Number Tower) */
+.nt-room.t-wall { cursor: not-allowed; background: repeating-linear-gradient(0deg, #8a83a8 0 22px, #5d5680 22px 26px); }
+.nt-room.t-wall .nt-wall-face { position: absolute; inset: 0; border-radius: 4px;
+  background: repeating-linear-gradient(90deg, transparent 0 44px, #5d5680 44px 48px); opacity: .6; }
+.nt-stage[data-world="2"] .nt-room.t-wall { background: repeating-linear-gradient(0deg, #3a2026 0 22px, #24121a 22px 26px); }
+.nt-stage[data-world="4"] .nt-room.t-wall { background: repeating-linear-gradient(0deg, #fff1cf 0 22px, #e8cf8a 22px 26px); }
+.nt-bridge.home { z-index: 1; }
