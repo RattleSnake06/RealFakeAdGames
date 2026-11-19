@@ -63,19 +63,26 @@
         ${sparkle(306, 40, .9, '#fff')}${sparkle(236, 92, .6, '#ffd21c')}
       </svg>`,
 
-    draw: `
+    tower: `
       <svg viewBox="0 0 320 200" aria-hidden="true">${ground}
-        ${blob(122, 118, 76, '#ff7ab8')}
-        <path d="M70 182 C70 90 250 70 262 176" fill="none" stroke="${OL}" stroke-width="13" stroke-linecap="round"/>
-        <path d="M70 182 C70 90 250 70 262 176" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 14" opacity=".8"/>
-        <g transform="translate(262 176) rotate(-140)">
-          <rect x="0" y="-9" width="56" height="18" rx="3" fill="#ffd21c" stroke="${OL}" stroke-width="4"/>
-          <rect x="44" y="-9" width="14" height="18" rx="3" fill="#ff7ab8" stroke="${OL}" stroke-width="4"/>
-          <path d="M0 -9 L-16 0 L0 9 Z" fill="#ffe0b8" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/>
-          <path d="M-10 -3.5 L-16 0 L-10 3.5Z" fill="${OL}"/>
-        </g>
-        ${hornet(62, 52, 10)}${hornet(160, 30, 0)}${hornet(262, 58, -15)}${hornet(30, 120, 25)}
-        ${sparkle(110, 78, .7, '#ffd21c')}
+        <rect x="14" y="128" width="62" height="58" rx="5" fill="#b7b0d9" stroke="${OL}" stroke-width="5"/>
+        <path d="M8 130 L45 98 L82 130 Z" fill="#6a8cff" stroke="${OL}" stroke-width="5" stroke-linejoin="round"/>
+        <rect x="22" y="136" width="46" height="44" rx="4" fill="#6fb2ff" stroke="${OL}" stroke-width="4"/>
+        ${blob(26, 142, 36, '#2fb4ff')}
+        <text x="45" y="134" font-size="17" text-anchor="middle" fill="#9df3ff" stroke="${OL}" stroke-width="5" paint-order="stroke" font-family="'Lilita One', sans-serif">22</text>
+        <rect x="150" y="10" width="112" height="178" rx="6" fill="#b7b0d9" stroke="${OL}" stroke-width="5"/>
+        <path d="M150 10 v-10 h14 v10 h14 v-10 h14 v10 h14 v-10 h14 v10 h14 v-10 h14 v10 h14 v-10 h0" fill="#b7b0d9" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/>
+        ${[0, 1, 2].map((k) => `<rect x="160" y="${18 + k * 56}" width="92" height="50" rx="4" fill="#6fb2ff" stroke="${OL}" stroke-width="4"/>`).join('')}
+        <text x="206" y="38" font-size="18" text-anchor="middle" fill="#9df3ff" stroke="${OL}" stroke-width="5" paint-order="stroke" font-family="'Lilita One', sans-serif">×12</text>
+        <g transform="translate(220 40) rotate(-35)"><rect x="-4" y="-22" width="8" height="30" rx="2" fill="#e6f3ff" stroke="${OL}" stroke-width="3"/><rect x="-11" y="6" width="22" height="6" rx="3" fill="#ffc21c" stroke="${OL}" stroke-width="3"/></g>
+        <text x="206" y="94" font-size="18" text-anchor="middle" fill="#ff6b7a" stroke="${OL}" stroke-width="5" paint-order="stroke" font-family="'Lilita One', sans-serif">238</text>
+        ${blob(204, 96, 28, '#7bd34a')}
+        <text x="206" y="150" font-size="18" text-anchor="middle" fill="#ff6b7a" stroke="${OL}" stroke-width="5" paint-order="stroke" font-family="'Lilita One', sans-serif">÷3</text>
+        <g transform="translate(222 154) rotate(35)"><rect x="-4" y="-22" width="8" height="30" rx="2" fill="#c2453e" stroke="${OL}" stroke-width="3"/><rect x="-11" y="6" width="22" height="6" rx="3" fill="#5d2fd1" stroke="${OL}" stroke-width="3"/></g>
+        <path d="M90 150 Q120 110 156 96" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray="2 9" stroke-linecap="round"/>
+        <text x="122" y="70" font-size="34" text-anchor="middle" fill="#fff" stroke="${OL}" stroke-width="6" paint-order="stroke" font-family="'Lilita One', sans-serif" transform="rotate(-10 122 70)">?</text>
+        ${badge(282, 40, '★★★', '#ffb81c', 62)}
+        ${sparkle(296, 120, 0.9)}${sparkle(110, 30, 0.7, '#ffd21c')}
       </svg>`,
 
     merge: `

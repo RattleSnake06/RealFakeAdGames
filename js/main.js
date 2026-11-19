@@ -92,7 +92,7 @@
         <span class="tile-text"><span class="tile-num">GAME ${i + 1}</span><span class="tile-name">${g.name}</span></span>
         <span class="tile-badge ${done ? 'done' : ''}" title="${done ? 'Cleared' : 'Not cleared'}">${done ? '★' : '★'}</span>`;
       t.addEventListener('click', () => {
-        if (matchMedia('(hover: hover)').matches) return play();
+        if (matchMedia('(hover: hover)').matches) { select(i, false); return play(); }
         select(i); // touch: first tap previews, PLAY button starts
         $('.menu-main').scrollTo({ top: 0, behavior: 'smooth' });
       });
@@ -155,6 +155,10 @@
       save,
       blip,
       setProgress(n) { state.save.levels[g.id] = Math.max(0, Math.min(n, g.levels)); save(); },
+      // shared cosmetic currency (shown in the menu's coin counter)
+      get coins() { return state.save.coins || 0; },
+      addCoins(n) { state.save.coins = (state.save.coins || 0) + n; save(); },
+      spendCoins(n) { if ((state.save.coins || 0) < n) return false; state.save.coins -= n; save(); return true; },
       clear() { state.save.cleared[g.id] = true; state.save.levels[g.id] = g.levels; save(); },
     };
   }

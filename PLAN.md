@@ -35,14 +35,14 @@ game's specific minigames, characters or look.
 | # | Name | The "ad" | Real gameplay | Core systems |
 |---|------|----------|---------------|--------------|
 | 1 | **Ore Rush** ✅ playable | "$0 → $1 BILLION!!" digger ploughing through piles of shiny ore | 3D arcade-idle: drive into ore, sell at the grinder, upgrade, prestige 5 times, reach the Prismite core. | three.js, instanced ore field, upgrade economy, prestige + perks |
-| 2 | **Draw to Save** | "Only genius can save him", bees attack a blob | Draw ONE line with limited ink; it becomes a physics wall; survive 10s of hornets. | Line drawing → physics body (Matter.js or small custom), swarm AI, timer |
+| 2 | **Number Tower** ✅ playable | "Only 1% pass level 47!" hero with a number climbing towers of numbered enemies | 125 hand-checked number puzzles: climb, pick gates, beat enemies with a bigger number, reach the boss. | DOM board, rules engine + solver, level generator, stars, outfits |
 | 3 | **Merge Mayhem** | "LVL 1 → LVL 999" army merging | Buy units, drag identical ones to merge, press FIGHT, auto-battle vs. boss army. | Drag & drop grid, merge rules, coins, simple auto-battler |
 | 4 | **Door of Doom** | "Which one??" 3 doors: lava, shark, lion… | Quick-thinking logic: pick the safe door/item before the timer ends. Escalating trick questions. | Scene/choice data (JSON), timer, reaction animations |
 | 5 | **Glutton Hole** | "SATISFYING!!!" hole swallowing a city | Move a hole; swallow objects smaller than you to grow; hit the % target before time runs out. | Top-down movement, size checks, falling-in animation, scoring |
 
 Each game has **10 steps of progress** (levels, or ore depth for Ore Rush). Finishing the last one marks it
 CLEARED (★) in the menu. Clearing all 5 unlocks a secret ending/credits.
-(Tower of Power was swapped out for Ore Rush; it's a spare idea if we ever want a 6th game.)
+(Spare ideas if we ever want more games: Draw to Save, a physics line-drawing puzzle.)
 
 ## Game 1: Ore Rush (built)
 - **Loop:** drill into ore → cart fills → unload on **SELL** → grinder turns ore into a coin pile → drive
@@ -71,6 +71,33 @@ CLEARED (★) in the menu. Clearing all 5 unlocks a secret ending/credits.
 - **Next for this game:** music + richer SFX, offline earnings ("you earned $X while away"), drill dust,
   balance pass from real playtests, real-phone performance test.
 
+## Game 2: Number Tower (built)
+- **Rules:** climb one floor per move, straight up or across a bridge (✕ = no bridge). Gates change your
+  power (+ − × ÷). Combat is a straight comparison: beat an enemy if your number is bigger and keep the
+  difference (300 vs 250 → 50 left). The boss waits on top. Every level has a fixed start power and layout;
+  nothing carries over between levels.
+- **125 levels, 5 worlds**, each world adds mechanics:
+  Grasslands (gates, forks, optional enemies, treasure) → Frozen Kingdom (❄ frozen gates + 🔥 torches,
+  🔑 keys + 🔒 locked rooms, sequencing) → Burning Lands (🛡 armored enemies cost double, 🎁 enemies that drop
+  rewards, lava burns a %) → Cursed Realm (🦹 thieves halve you first, 💀 curses flip your next gate,
+  🔄 switches flip rune gates) → Celestial Kingdom (everything combined). Each world ends with a boss tower.
+- **Difficulty** ramps Easy → Normal → Medium → Hard → Expert inside each world through puzzle design:
+  fewer winning routes, gimmicks that must be used, and from Medium up the "always take the biggest number"
+  player loses. Expert levels usually have exactly one winning route.
+- **Gimmicks** (every level has its own name): Fork in the Road, Multiplier Trap, Add Then Multiply,
+  Optional Enemy, Hidden Treasure, No Room for Error, Locked Floor, Cold Snap, Sequence, Armored Knights,
+  Spoils of War, Lava Floor, Power Thief, Operation Switch, Cursed Blade, The Gauntlet.
+- **Stars:** ★ clear · ★ no deaths, restarts or hints · ★ a level-specific challenge (finish with X+ power,
+  never use − or ÷, defeat N enemies, grab the treasure, or beat a time).
+- **Coins** come only from new stars and only buy outfits (8 colors, 8 hats). Power is never for sale.
+- **How the levels are made:** `js/games/tower/logic.js` is the rules engine and solver (shared by game and
+  tools). `tools/gen-tower-levels.js` builds each level around its gimmick, sizes the numbers from the power
+  a player could really have on each floor, plays every route, and picks the boss number so the right share
+  of routes win. It writes `js/games/tower/levels.js` (deterministic; rerun with `node tools/gen-tower-levels.js`).
+  Every level is checked: solvable, stored solution wins, third star possible, greedy fails from Medium up.
+- **Debug:** `index.html?debug` exposes `NT` (e.g. `NT.d.unlocked = 125; NT.openLevel(99)`).
+- **Next for this game:** playtest and hand-tune favourite levels, a "daily tower", sound polish.
+
 ## Milestones
 **M0 – Shell (DONE)**: animated title (logo, sunburst, hopping Blobs, "press any button"),
 game select with a big featured card + 5 game tiles, coin & trophy counters, Wardrobe/Options/Credits,
@@ -90,10 +117,10 @@ games load on demand, get `{ data, save, settings, blip, setProgress, clear }`, 
 
 **M2 – Games** (each one is its own branch / PR)
 1. ✅ Ore Rush (3D arcade idle)
-2. Door of Doom (mostly data + UI, fastest win)
-3. Glutton Hole (movement + collision; can reuse Ore Rush's 3D setup)
-4. Merge Mayhem (drag/drop + auto-battle)
-5. Draw to Save (physics — hardest, last)
+2. ✅ Number Tower (number puzzle, 125 levels)
+3. Door of Doom (mostly data + UI, fastest win)
+4. Glutton Hole (movement + collision; can reuse Ore Rush's 3D setup)
+5. Merge Mayhem (drag/drop + auto-battle)
 
 For each game, the same checklist:
 - [ ] Prototype with boxes/circles (fun first, art later)
