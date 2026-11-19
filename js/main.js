@@ -5,7 +5,7 @@
   const $$ = (s) => [...document.querySelectorAll(s)];
 
   // ---------------- Save data ----------------
-  const defaults = () => ({ cleared: {}, levels: {}, coins: 0, settings: { music: 70, sfx: 80, shake: true } });
+  const defaults = () => ({ cleared: {}, levels: {}, coins: 0, games: {}, settings: { music: 70, sfx: 80, shake: true } });
   function load() {
     try {
       const raw = JSON.parse(localStorage.getItem(SAVE_KEY));
@@ -19,8 +19,8 @@
 
   // ---------------- UI sounds (Web Audio, no files) ----------------
   let ctx;
-  function blip(freq = 520, dur = 0.08, type = 'square', slide = 1.6) {
-    const vol = state.save.settings.sfx / 100;
+  function blip(freq = 520, dur = 0.08, type = 'square', slide = 1.6, gain = 1) {
+    const vol = (state.save.settings.sfx / 100) * gain;
     if (!vol) return;
     try {
       ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
@@ -136,12 +136,60 @@
     if (changed) { renderFeatured(); if (withSound) sfx.hover(); }
   }
 
-  // ---------------- Game host (placeholder until real modules exist) ----------------
+  // ---------------- Game host ----------------
+  // A game listed with `scripts` in the registry is loaded on demand and must register
+  // window.GAME_MODULES[id] = { create(stage, api) -> { pause(), resume(), destroy() } }.
+  let current = null, mountToken = 0;
+  const loaded = {};
+  const loadScript = (src) => (loaded[src] ||= new Promise((res, rej) => {
+    const el = document.createElement('script');
+    el.src = src; el.onload = res;
+    el.onerror = () => { loaded[src] = null; rej(new Error('Could not load ' + src)); };
+    document.head.appendChild(el);
+  }));
+  function makeApi(g) {
+    state.save.games ||= {};
+    return {
+      data: (state.save.games[g.id] ||= {}),
+      get settings() { return state.save.settings; },
+      save,
+      blip,
+      setProgress(n) { state.save.levels[g.id] = Math.max(state.save.levels[g.id] || 0, Math.min(n, g.levels)); save(); },
+      clear() { state.save.cleared[g.id] = true; state.save.levels[g.id] = g.levels; save(); },
+    };
+  }
+  function unmountGame() {
+    mountToken++;
+    if (current) { try { current.destroy(); } catch (err) { console.error(err); } current = null; }
+    $('#screen-game').classList.remove('live');
+  }
+  function mountGame(g) {
+    unmountGame();
+    const token = mountToken, stage = $('#game-stage');
+    $('#game-title').textContent = g.name;
+    if (!g.scripts) return mountPlaceholder(g);
+    $('#screen-game').classList.add('live');
+    stage.innerHTML = `<div class="game-loading"><svg viewBox="0 0 100 100"><use href="#blob" x="10" y="10" width="80" height="80" style="color:${g.color}"/></svg><span>LOADING…</span></div>`;
+    g.scripts.reduce((p, src) => p.then(() => loadScript(src)), Promise.resolve())
+      .then(() => {
+        if (token !== mountToken || state.screen !== 'game') return;
+        stage.innerHTML = '';
+        document.activeElement?.blur?.();
+        current = window.GAME_MODULES[g.id].create(stage, makeApi(g));
+      })
+      .catch((err) => {
+        console.error(err);
+        if (token !== mountToken) return;
+        stage.innerHTML = `<div class="game-loading"><span>Couldn't start the game 😢</span><small>${String(err.message || err)}</small>
+          <button class="btn b-blue" data-action="back-menu">◀ BACK</button></div>`;
+      });
+  }
   function play() {
     const g = GAMES[state.selected];
     sfx.click();
-    go('game', () => {
-      $('#game-title').textContent = g.name;
+    go('game', () => mountGame(g));
+  }
+  function mountPlaceholder(g) {
       $('#game-stage').innerHTML = `
         <div class="wip">
           <div class="featured" style="--c:${g.color};--d:${g.dark}">
@@ -152,7 +200,6 @@
             </div>
           </div>
         </div>`;
-    });
   }
 
   // ---------------- Actions ----------------
@@ -160,16 +207,21 @@
     start: () => { sfx.click(); go('menu'); },
     play,
     'back-title': () => { sfx.back(); go('title'); },
-    'back-menu': () => { sfx.back(); go('menu'); },
+    'back-menu': () => { sfx.back(); go('menu', unmountGame); },
     settings: () => { sfx.click(); openOverlay('settings'); },
     credits: () => { sfx.click(); openOverlay('credits'); },
     wardrobe: () => { sfx.click(); openOverlay('wardrobe'); },
-    pause: () => { sfx.click(); openOverlay('pause'); },
+    pause: () => { sfx.click(); current?.pause(); openOverlay('pause'); },
     restart: () => { closeOverlays(); play(); },
-    'close-overlay': () => { sfx.back(); closeOverlays(); if (state.screen === 'menu') $$('.tile')[state.selected]?.focus({ preventScroll: true }); },
+    'close-overlay': () => {
+      sfx.back(); closeOverlays();
+      if (state.screen === 'menu') $$('.tile')[state.selected]?.focus({ preventScroll: true });
+      if (state.screen === 'game') { document.activeElement?.blur?.(); current?.resume(); }
+    },
     'reset-progress': () => {
       if (!confirm('Reset all progress?')) return;
       const settings = state.save.settings;
+      unmountGame();
       state.save = { ...defaults(), settings };
       save(); renderMenu(); select(state.selected, false); renderFeatured();
     },
@@ -219,6 +271,11 @@
       if ((k === 'Enter' || k === ' ') && document.activeElement?.classList.contains('tile')) { e.preventDefault(); play(); }
     }
   });
+
+  // Pause the game when the tab is hidden; save when the page closes.
+  const autoPause = () => { if (state.screen === 'game' && current && !overlayOpen() && !state.busy) actions.pause(); };
+  document.addEventListener('visibilitychange', () => document.hidden && autoPause());
+  window.addEventListener('pagehide', () => save());
 
   // ---------------- Settings wiring ----------------
   const s = state.save.settings;

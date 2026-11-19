@@ -1,9 +1,11 @@
 // The 5 games. Each entry drives a menu card (art lives in js/art.js under the same id).
-// Later each game gets its own module implementing
-// { init(stage, api), start(level), pause(), resume(), destroy() }.
+// A game with `scripts` is playable: those files load on demand and register
+// window.GAME_MODULES[id] = { create(stage, api) } returning { pause(), resume(), destroy() }.
+// Games without `scripts` show an "under construction" placeholder.
 window.GAMES = [
-  { id: 'tower', name: 'TOWER OF POWER', tagline: 'Eat weaker foes. Get stronger. Climb to the top!',
-    adHook: '99% FAIL LEVEL 3!', color: '#ff4f7b', dark: '#c4224f', genre: 'Number-power puzzle', levels: 10 },
+  { id: 'mine', name: 'ORE RUSH', tagline: 'Dig ore, grind it into cash, upgrade EVERYTHING.',
+    adHook: '$0 → $1,000,000!!', color: '#ff4f7b', dark: '#c4224f', genre: 'Arcade idle mining', levels: 10,
+    scripts: ['js/vendor/three.min.js', 'js/games/mine/mine.js'] },
   { id: 'draw', name: 'DRAW TO SAVE', tagline: 'One line. Angry hornets. Protect the blob!',
     adHook: 'ONLY GENIUS CAN SAVE HIM', color: '#ffb81c', dark: '#d9860b', genre: 'Physics drawing', levels: 10 },
   { id: 'merge', name: 'MERGE MAYHEM', tagline: 'Merge your troops. Crush the boss army.',

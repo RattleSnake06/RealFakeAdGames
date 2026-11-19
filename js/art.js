@@ -25,24 +25,42 @@
   const ground = `<ellipse cx="160" cy="196" rx="190" ry="22" fill="#000" opacity=".12"/>`;
 
   window.ART = {
-    tower: `
+    mine: `
       <svg viewBox="0 0 320 200" aria-hidden="true">${ground}
-        <path d="M160 26 L235 -8 L310 26 Z" fill="#ff4f7b" stroke="${OL}" stroke-width="5" stroke-linejoin="round"/>
-        <rect x="168" y="22" width="134" height="166" rx="10" fill="#fff4e6" stroke="${OL}" stroke-width="5"/>
-        <path d="M168 77 H302 M168 132 H302" stroke="${OL}" stroke-width="5"/>
-        <rect x="176" y="28" width="118" height="10" rx="5" fill="#ffd9c2"/>
-        ${blob(208, 30, 44, '#8d5bff')}${badge(276, 52, 50, '#e8304f', 40)}
-        ${blob(208, 86, 44, '#7bd94a')}${badge(276, 107, 8, '#27c46b', 34)}
-        ${blob(208, 140, 44, '#ff9a3d')}${badge(276, 162, 15, '#ff7a3d', 40)}
-        <path d="M120 150 Q160 176 198 164" fill="none" stroke="#fff" stroke-width="5" stroke-dasharray="2 10" stroke-linecap="round"/>
-        <g transform="rotate(-35 128 100)">
-          <rect x="122" y="58" width="12" height="50" rx="3" fill="#e6f3ff" stroke="${OL}" stroke-width="4"/>
-          <rect x="112" y="104" width="32" height="9" rx="4" fill="#ffd21c" stroke="${OL}" stroke-width="4"/>
-          <rect x="123" y="112" width="10" height="18" rx="3" fill="#9a5b2e" stroke="${OL}" stroke-width="4"/>
+        ${[[250,178,15,'#ffc330'],[278,180,14,'#e4e9f2'],[306,176,15,'#ffc330'],[236,160,13,'#e07a3c'],[264,158,15,'#e4e9f2'],
+           [292,156,14,'#1fd67a'],[316,154,12,'#e07a3c'],[250,138,13,'#ffc330'],[278,134,14,'#ff2d5c'],[304,132,13,'#e4e9f2'],
+           [266,114,12,'#c6f6ff'],[292,110,12,'#ffc330']]
+          .map(([x, y, r, c]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="${OL}" stroke-width="4"/><ellipse cx="${x - r * 0.35}" cy="${y - r * 0.4}" rx="${r * 0.32}" ry="${r * 0.2}" fill="#fff" opacity=".7"/>`).join('')}
+        <path d="M76 140 H94" stroke="${OL}" stroke-width="6" stroke-linecap="round"/>
+        <rect x="12" y="112" width="66" height="40" rx="6" fill="#c77b3c" stroke="${OL}" stroke-width="5"/>
+        <rect x="8" y="106" width="74" height="10" rx="4" fill="#ffc21c" stroke="${OL}" stroke-width="4"/>
+        <circle cx="26" cy="100" r="9" fill="#ffc330" stroke="${OL}" stroke-width="3.5"/>
+        <circle cx="44" cy="96" r="10" fill="#e4e9f2" stroke="${OL}" stroke-width="3.5"/>
+        <circle cx="62" cy="100" r="9" fill="#e07a3c" stroke="${OL}" stroke-width="3.5"/>
+        <circle cx="36" cy="86" r="7" fill="#1fd67a" stroke="${OL}" stroke-width="3.5"/>
+        <circle cx="45" cy="158" r="12" fill="${OL}"/><circle cx="45" cy="158" r="4.5" fill="#ffc21c"/>
+        <rect x="100" y="62" width="7" height="54" fill="${OL}"/><rect x="142" y="62" width="7" height="54" fill="${OL}"/>
+        ${blob(103, 66, 42, '#2fb4ff')}
+        <rect x="90" y="54" width="68" height="13" rx="5" fill="#ff4f7b" stroke="${OL}" stroke-width="4"/>
+        <rect x="88" y="110" width="102" height="42" rx="10" fill="#ffc21c" stroke="${OL}" stroke-width="5"/>
+        <rect x="150" y="94" width="38" height="20" rx="5" fill="#ffc21c" stroke="${OL}" stroke-width="4.5"/>
+        <rect x="170" y="74" width="7" height="22" rx="3" fill="${OL}"/>
+        <rect x="96" y="116" width="86" height="7" rx="3.5" fill="#fff" opacity=".45"/>
+        <circle cx="110" cy="156" r="17" fill="${OL}"/><circle cx="110" cy="156" r="6" fill="#ffc21c"/>
+        <circle cx="170" cy="156" r="17" fill="${OL}"/><circle cx="170" cy="156" r="6" fill="#ffc21c"/>
+        <path d="M188 128 H208" stroke="${OL}" stroke-width="7" stroke-linecap="round"/>
+        <path d="M236 104 L250 110 L236 116 Z M236 120 L250 126 L236 132 Z M236 136 L250 142 L236 148 Z M236 152 L250 158 L236 162 Z" fill="#8d5bff" stroke="${OL}" stroke-width="3.5" stroke-linejoin="round"/>
+        <rect x="204" y="98" width="34" height="68" rx="13" fill="#d7dcea" stroke="${OL}" stroke-width="5"/>
+        <path d="M212 104 V160 M222 102 V162 M230 104 V160" stroke="${OL}" stroke-width="2.5" opacity=".5"/>
+        <path d="M206 92 Q170 30 52 76" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray="2 10" stroke-linecap="round"/>
+        <circle cx="150" cy="44" r="7" fill="#ffc330" stroke="${OL}" stroke-width="3"/>
+        <circle cx="104" cy="52" r="6" fill="#e4e9f2" stroke="${OL}" stroke-width="3"/>
+        <g font-family="'Lilita One', sans-serif" text-anchor="middle">
+          <circle cx="262" cy="64" r="15" fill="#ffc330" stroke="${OL}" stroke-width="4"/><text x="262" y="72" font-size="20" fill="${OL}">$</text>
+          <circle cx="296" cy="86" r="11" fill="#ffc330" stroke="${OL}" stroke-width="3.5"/><text x="296" y="92" font-size="15" fill="${OL}">$</text>
         </g>
-        ${blob(28, 96, 96, '#2fb4ff')}
-        ${badge(76, 88, 12, '#ffb81c', 46)}
-        ${sparkle(30, 40, 1.1)}${sparkle(140, 22, .8, '#ffd21c')}
+        ${badge(212, 34, '$1M', '#27c46b', 64)}
+        ${sparkle(306, 40, .9, '#fff')}${sparkle(236, 92, .6, '#ffd21c')}
       </svg>`,
 
     draw: `
