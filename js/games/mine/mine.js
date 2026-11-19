@@ -1,7 +1,7 @@
 /* =====================================================================
    ORE RUSH — Game 1 (arcade idle mining)
    Drive the digger into the ore, unload at the grinder, grab the coins,
-   park on upgrade pads. Goal: earn $1,000,000.
+   park on upgrade pads, prestige to dig deeper. Goal: reach the PRISMITE core.
    Needs window.THREE (three.js r159 UMD build, vendored in js/vendor).
    ===================================================================== */
 (() => {
@@ -11,40 +11,74 @@
   // ------------------------------------------------------------------
   // Tuning
   // ------------------------------------------------------------------
+  // kind: nugget (smooth lump), chunk (faceted rock), gem (crystal), shard (tall crystal)
   const TIERS = [
-    { name: 'COPPER',  color: 0xe07a3c, metal: 1.0, rough: 0.30, value: 1,   gem: false, css: '#e07a3c' },
-    { name: 'SILVER',  color: 0xe4e9f2, metal: 1.0, rough: 0.20, value: 3,   gem: false, css: '#b9c3d6' },
-    { name: 'GOLD',    color: 0xffc330, metal: 1.0, rough: 0.20, value: 8,   gem: false, css: '#ffc330' },
-    { name: 'EMERALD', color: 0x10c266, metal: 0.2, rough: 0.06, value: 25,  gem: true,  css: '#1fd67a', glow: 0x04381c },
-    { name: 'RUBY',    color: 0xff2d5c, metal: 0.2, rough: 0.06, value: 70,  gem: true,  css: '#ff2d5c', glow: 0x3d0210 },
-    { name: 'DIAMOND', color: 0xc6f6ff, metal: 0.3, rough: 0.02, value: 200, gem: true,  css: '#7fe3ff', glow: 0x1d4652 },
+    { name: 'COPPER',    color: 0xe07a3c, kind: 'nugget', metal: 1.0, rough: 0.30 },
+    { name: 'IRON',      color: 0x8a909c, kind: 'chunk',  metal: 0.9, rough: 0.40 },
+    { name: 'SILVER',    color: 0xe4e9f2, kind: 'nugget', metal: 1.0, rough: 0.20 },
+    { name: 'GOLD',      color: 0xffc330, kind: 'nugget', metal: 1.0, rough: 0.20 },
+    { name: 'AMETHYST',  color: 0xa45cff, kind: 'gem',    metal: 0.2, rough: 0.06, glow: 0x24074d },
+    { name: 'EMERALD',   color: 0x10c266, kind: 'gem',    metal: 0.2, rough: 0.06, glow: 0x04381c },
+    { name: 'COBALT',    color: 0x3a74ff, kind: 'nugget', metal: 1.0, rough: 0.25 },
+    { name: 'RUBY',      color: 0xff2d5c, kind: 'gem',    metal: 0.2, rough: 0.06, glow: 0x3d0210 },
+    { name: 'ROSE GOLD', color: 0xffa0b8, kind: 'nugget', metal: 1.0, rough: 0.20 },
+    { name: 'TOPAZ',     color: 0xffa41c, kind: 'gem',    metal: 0.2, rough: 0.06, glow: 0x3d1e00 },
+    { name: 'MYTHRIL',   color: 0x45f0d2, kind: 'chunk',  metal: 1.0, rough: 0.15, glow: 0x063a32 },
+    { name: 'OBSIDIAN',  color: 0x2b2340, kind: 'shard',  metal: 0.4, rough: 0.04, fly: 0x5a4a80 },
+    { name: 'DIAMOND',   color: 0xc6f6ff, kind: 'gem',    metal: 0.3, rough: 0.02, glow: 0x1d4652 },
+    { name: 'URANIUM',   color: 0x86ff3c, kind: 'shard',  metal: 0.1, rough: 0.30, glow: 0x3a9a00 },
+    { name: 'MAGMA',     color: 0xff6a24, kind: 'chunk',  metal: 0.0, rough: 0.55, glow: 0xc22a00 },
+    { name: 'MOONSTONE', color: 0xdbe6ff, kind: 'nugget', metal: 0.1, rough: 0.10, glow: 0x41528f },
+    { name: 'VOID',      color: 0x5a1fae, kind: 'shard',  metal: 0.4, rough: 0.05, glow: 0x8a10ff },
+    { name: 'PRISMITE',  color: 0xffffff, kind: 'gem',    metal: 0.3, rough: 0.05, glow: 0x303030, rainbow: true, fly: 0xff8af0 },
   ];
-  const BAND = 16;                                     // depth of each ore band
+  const VALUES = [1, 2, 5, 12, 30, 70, 170, 400, 1000, 2400, 6000, 14000, 35000, 85000, 2e5, 5e5, 1.2e6, 3e6];
+  TIERS.forEach((t, i) => { t.value = VALUES[i]; t.fly ??= t.color; });
+  const LAST = TIERS.length - 1;
+  const BAND = 14;                                     // depth of each ore band
   const FIELD_START = -6;                              // ore begins here (north of base)
-  const FIELD_END = FIELD_START - BAND * TIERS.length; // -102
+  const FIELD_END = FIELD_START - BAND * TIERS.length; // -258
   const HALF_W = 11;                                   // field half-width
   const CLAMP_X = 10.4, BASE_S = 11;                   // drivable bounds
-  const MILESTONES = [100, 500, 2e3, 6e3, 2e4, 6e4, 1.5e5, 3.5e5, 6.5e5, 1e6];
-  const CART_CAP = [20, 35, 55, 80, 110, 150, 200, 260, 330, 400];
-  const REGROW_AFTER = 120;                            // seconds before mined ore grows back
+  const CART_CAP = [25, 40, 60, 85, 115, 150, 200, 260, 330, 400, 480, 560];
+  const REGROW_AFTER = 180;                            // seconds before mined ore grows back
+  const LUCKY = 32;                                    // flag bit on cargo entries: ore worth x10
+  const SKIP_GAP = 3;                                  // ore this many tiers below your pickaxe is ploughed, not collected
+
+  // Prestige: each rank doubles ore value forever (AdVenture Capitalist angels), lets the
+  // pickaxe reach 2 more ores (Idle Miner mine tiers), and pays Star Gems for permanent
+  // perks based on how much you earned this run (Cookie Clicker heavenly chips).
+  const MAX_RANK = 5;
+  const pickCap = (rank) => Math.min(TIERS.length, 8 + 2 * rank); // highest pickaxe level this rank allows
+  const rankFor = (tier) => Math.max(0, Math.ceil((tier + 1 - 8) / 2)); // rank needed to mine a tier
+  const PRESTIGE_COST = [7.5e5, 1e7, 1.2e8, 1.5e9, 1.8e10];
+  const gemsFor = (run, rank) => Math.max(10, Math.floor(10 * Math.sqrt(run / PRESTIGE_COST[rank])));
+  const PERKS = [
+    { id: 'turbo',   name: 'TURBO TREADS', icon: '💨', max: 5, cost: (l) => 3 + l,     desc: '+10% drive speed' },
+    { id: 'bigcart', name: 'BIG CART',     icon: '🛒', max: 5, cost: (l) => 3 + l,     desc: '+15% cart size' },
+    { id: 'golden',  name: 'GOLDEN TOUCH', icon: '✨', max: 5, cost: (l) => 4 + 2 * l, desc: '+25% ore value' },
+    { id: 'lucky',   name: 'LUCKY STRIKE', icon: '🍀', max: 5, cost: (l) => 3 + 2 * l, desc: '+4% chance ore is worth x10' },
+    { id: 'head',    name: 'HEAD START',   icon: '🚀', max: 3, cost: (l) => 6 + 3 * l, desc: 'Start runs with +1 Engine, Cart & Grinder' },
+  ];
 
   const nice = (n) => { const p = 10 ** Math.max(0, Math.floor(Math.log10(n)) - 1); return Math.round(n / p) * p; };
   const UPG = [
-    { id: 'pickaxe', name: 'PICKAXE', icon: '⛏️', color: '#ff4f7b', max: 6, start: 1, pos: [3.4, -1.5],
-      cost: (l) => [60, 450, 3000, 15000, 80000][l - 1], next: (l) => `Mine ${TIERS[l].name}` },
-    { id: 'engine', name: 'ENGINE', icon: '🚜', color: '#ffb81c', max: 8, start: 1, pos: [6.8, -1.5],
-      cost: (l) => nice(35 * 2.1 ** (l - 1)), next: () => 'Drive faster' },
-    { id: 'cart', name: 'CART', icon: '🛒', color: '#2fb4ff', max: 10, start: 1, pos: [10.2, -1.5],
-      cost: (l) => nice(45 * 2.25 ** (l - 1)), next: (l) => `Holds ${CART_CAP[l]} ore` },
+    { id: 'pickaxe', name: 'PICKAXE', icon: '⛏️', color: '#ff4f7b', max: TIERS.length, start: 1, pos: [3.4, -1.5], cap: (d) => pickCap(d.rank),
+      cost: (l) => nice(VALUES[l - 1] * 40 * 1.22 ** (l - 1)), next: (l) => `Mine ${TIERS[l].name}, older ores faster` },
+    { id: 'engine', name: 'ENGINE', icon: '🚜', color: '#ffb81c', max: 10, start: 1, pos: [6.8, -1.5],
+      cost: (l) => nice(12 * 2.1 ** (l - 1)), next: () => 'Drive faster' },
+    { id: 'cart', name: 'CART', icon: '🛒', color: '#2fb4ff', max: CART_CAP.length, start: 1, pos: [10.2, -1.5],
+      cost: (l) => nice(15 * 2.25 ** (l - 1)), next: (l) => `Holds ${CART_CAP[l]} ore` },
     { id: 'grinder', name: 'GRINDER', icon: '⚙️', color: '#8d5bff', max: 10, start: 1, pos: [5.1, 4],
-      cost: (l) => nice(90 * 2.3 ** (l - 1)), next: (l) => `x${(1 + 0.25 * l).toFixed(2)} value, faster` },
+      cost: (l) => nice(30 * 2.3 ** (l - 1)), next: (l) => `x${(1 + 0.25 * l).toFixed(2)} value, faster` },
     { id: 'collector', name: 'AUTO COLLECT', icon: '🤖', color: '#27c46b', max: 5, start: 0, pos: [8.5, 4],
-      cost: (l) => [400, 2000, 8000, 30000, 100000][l], next: (l) => (l === 0 ? 'Collects coins for you' : 'Collects faster') },
+      cost: (l) => [150, 700, 2500, 10000, 35000][l], next: (l) => (l === 0 ? 'Collects coins for you' : 'Collects faster') },
   ];
 
   // World layout
   const GRINDER = { x: -8, z: -1.5 };
   const SELL = { x: -8, z: 2.7 };
+  const PRESTIGE = { x: -8, z: 7.6 };
   const PILE = { x: -3.6, z: -1.4 };
   const VAULT = { x: -3.6, z: 3.6 };
   const START = { x: 0, z: 8 };
@@ -57,9 +91,12 @@
   const fmt = (n) => {
     n = Math.floor(n);
     if (n < 1e4) return '$' + n.toLocaleString('en-US');
-    if (n < 1e6) return '$' + (n / 1e3).toFixed(n < 1e5 ? 1 : 0) + 'K';
-    return '$' + (n / 1e6).toFixed(n < 1e7 ? 2 : 1) + 'M';
+    const [d, s] = n < 1e6 ? [1e3, 'K'] : n < 1e9 ? [1e6, 'M'] : n < 1e12 ? [1e9, 'B'] : [1e12, 'T'];
+    const v = n / d;
+    return '$' + v.toFixed(v < 10 ? 2 : v < 100 ? 1 : 0) + s;
   };
+  // how much faster an ore breaks when your pickaxe is beyond it
+  const easeFactor = (tier, maxTier) => 1 + 0.5 * Math.max(0, maxTier - tier);
   const mulberry32 = (a) => () => {
     a |= 0; a = (a + 0x6d2b79f5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
@@ -182,8 +219,15 @@
     constructor(stage, api) {
       this.stage = stage; this.api = api;
       const d = (this.d = api.data);
-      d.money ??= 0; d.total ??= 0; d.ms ??= 0; d.won ??= false; d.bought ??= 0;
-      d.up ??= {}; d.paid ??= {};
+      if (d.v !== 2) { // saves from the 6-ore version can't carry over
+        Object.keys(d).forEach((k) => { delete d[k]; });
+        d.v = 2;
+        api.setProgress(0);
+      }
+      d.money ??= 0; d.total ??= 0; d.run ??= 0; d.won ??= false; d.bought ??= 0;
+      d.rank ??= 0; d.gems ??= 0; d.deep ??= -1; d.perks ??= {};
+      for (const p of PERKS) d.perks[p.id] ??= 0;
+      d.up ??= this.startLevels(); d.paid ??= {};
       for (const u of UPG) { d.up[u.id] ??= u.start; d.paid[u.id] ??= 0; }
       this.mobile = matchMedia('(pointer: coarse)').matches;
       this.time = 0; this.running = true; this.disposed = false;
@@ -208,16 +252,21 @@
     }
 
     get S() {
-      const u = this.d.up;
+      const u = this.d.up, pk = this.d.perks;
       return {
         maxTier: u.pickaxe - 1,
-        drill: 9 + 5 * (u.pickaxe - 1),
-        speed: 4.6 + 0.75 * (u.engine - 1),
-        cap: CART_CAP[u.cart - 1],
-        grind: 6 + 3 * (u.grinder - 1),
-        mult: 1 + 0.25 * (u.grinder - 1),
+        drill: 9 + 4 * (u.pickaxe - 1),
+        speed: (4.6 + 0.75 * (u.engine - 1)) * (1 + 0.1 * pk.turbo),
+        cap: Math.round(CART_CAP[u.cart - 1] * (1 + 0.15 * pk.bigcart)),
+        grind: 6 + 4 * (u.grinder - 1),
+        mult: (1 + 0.25 * (u.grinder - 1)) * 2 ** this.d.rank * (1 + 0.25 * pk.golden),
+        lucky: 0.04 * pk.lucky,
         autoEvery: [0, 2.5, 1.6, 1.0, 0.6, 0.35][u.collector],
       };
+    }
+    startLevels() {
+      const h = (this.d.perks && this.d.perks.head) || 0;
+      return { pickaxe: 1, engine: 1 + h, cart: 1 + h, grinder: 1 + h, collector: 0 };
     }
 
     // ---------------- DOM / HUD ----------------
@@ -229,7 +278,18 @@
         <div class="mh-labels"></div>
         <div class="mh-top">
           <div class="mh-money"><i class="coin"></i><b>$0</b></div>
-          <div class="mh-goal"><span class="mh-goal-t">GOAL</span><span class="progress"><i></i></span><span class="mh-goal-v">$1M</span></div>
+          <div class="mh-goal"><span class="mh-goal-t">RANK 0</span><span class="progress"><i></i></span><span class="mh-goal-v">0/18 ORES</span></div>
+        </div>
+        <div class="mh-prest" hidden>
+          <div class="panel">
+            <div class="panel-head b-purple">⭐ PRESTIGE</div>
+            <div class="panel-body">
+              <div class="pr-info"></div>
+              <button class="btn b-orange pr-go" data-mine="prestige">PRESTIGE</button>
+              <div class="pr-perks"></div>
+              <button class="btn btn-sm b-white" data-mine="close-prest">CLOSE</button>
+            </div>
+          </div>
         </div>
         <div class="mh-bottom">
           <div class="mh-hint"></div>
@@ -241,8 +301,8 @@
           <div class="panel">
             <div class="panel-head b-green">THE AD WAS REAL!</div>
             <div class="panel-body">
-              <p class="mh-win-big">$1,000,000</p>
-              <p>You dug your way from zero to a million. Game cleared! ★</p>
+              <p class="mh-win-big">PRISMITE!</p>
+              <p>You dug all the way down to the rainbow core. Game cleared! ★</p>
               <button class="btn b-orange" data-mine="keep">KEEP DIGGING</button>
               <button class="btn b-blue" data-action="back-menu">BACK TO MENU</button>
             </div>
@@ -254,8 +314,17 @@
         goalBar: q('.mh-goal .progress i'), goalT: q('.mh-goal-t'), goalV: q('.mh-goal-v'),
         hint: q('.mh-hint'), cargo: q('.mh-cargo'), cargoBar: q('.mh-cargo .progress i'), cargoT: q('.mh-cargo b'),
         joy: q('.mh-joy'), knob: q('.mh-joy i'), banner: q('.mh-banner'), win: q('.mh-win'),
+        prest: q('.mh-prest'), prInfo: q('.pr-info'), prGo: q('.pr-go'), prPerks: q('.pr-perks'),
       };
-      q('[data-mine=keep]').addEventListener('click', () => { this.el.win.hidden = true; });
+      st.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-mine]');
+        if (!b) return;
+        const a = b.dataset.mine;
+        if (a === 'keep') this.el.win.hidden = true;
+        if (a === 'close-prest') { this.prestDismissed = true; this.el.prest.hidden = true; this.prestArmed = false; }
+        if (a === 'prestige') this.tryPrestige();
+        if (a === 'perk') this.buyPerk(b.dataset.perk);
+      });
     }
 
     label(html, x, y, z, cls = 'm-tag', anchor = 'bottom') {
@@ -317,8 +386,8 @@
     buildWorld() {
       const sc = this.scene;
       // Ground layers
-      const ground = new T.Mesh(new T.PlaneGeometry(140, 240), std(0x9a8bdb, { roughness: 1 }));
-      ground.rotation.x = -Math.PI / 2; ground.position.set(0, 0, -45); ground.receiveShadow = true; sc.add(ground);
+      const ground = new T.Mesh(new T.PlaneGeometry(140, -FIELD_END + 110), std(0x9a8bdb, { roughness: 1 }));
+      ground.rotation.x = -Math.PI / 2; ground.position.set(0, 0, (FIELD_END + 50) / 2); ground.receiveShadow = true; sc.add(ground);
       const fieldLen = FIELD_START - FIELD_END + 4;
       const floor = new T.Mesh(new T.PlaneGeometry(HALF_W * 2 + 3, fieldLen), std(0xd4caf8, { roughness: 0.95 }));
       floor.rotation.x = -Math.PI / 2; floor.position.set(0, 0.005, (FIELD_START + FIELD_END) / 2 - 1); floor.receiveShadow = true; sc.add(floor);
@@ -346,6 +415,7 @@
       this.buildPile();
       this.buildVault();
       this.buildPads();
+      this.buildPrestige();
 
       // Flyers
       this.oreFly = new Flyers(sc, new T.IcosahedronGeometry(0.22, 1), this.oreMat, 220, true);
@@ -392,7 +462,7 @@
 
       // Crystal clusters on the canyon walls, colored by the band they sit in
       this.tierMats = TIERS.map((t) => std(t.color, {
-        metalness: t.metal, roughness: t.rough, flatShading: t.gem, envMapIntensity: t.gem ? 1.6 : 1.25,
+        metalness: t.metal, roughness: t.rough, flatShading: t.kind !== 'nugget', envMapIntensity: t.kind === 'nugget' ? 1.25 : 1.6,
         emissive: t.glow || 0x000000,
       }));
       const cg = new T.OctahedronGeometry(1, 0);
@@ -439,11 +509,13 @@
         this.ci[i] = counts[c.tier]++;
         this.q.setFromEuler(e.set(rng() * 6, rng() * 6, rng() * 6)); this.q.toArray(this.cq, i * 4);
       });
-      const nugget = new T.IcosahedronGeometry(1, 1);
-      const gem = new T.OctahedronGeometry(1, 0);
+      const octa = new T.OctahedronGeometry(1, 0);
+      const geos = { nugget: new T.IcosahedronGeometry(1, 1), gem: octa, shard: octa, chunk: new T.DodecahedronGeometry(1, 0) };
+      const col = new T.Color();
       this.oreMeshes = TIERS.map((t, k) => {
-        const m = new T.InstancedMesh(t.gem ? gem : nugget, this.tierMats[k], counts[k]);
+        const m = new T.InstancedMesh(geos[t.kind], this.tierMats[k], counts[k]);
         m.castShadow = !this.mobile; m.receiveShadow = true;
+        if (t.rainbow) for (let j = 0; j < counts[k]; j++) m.setColorAt(j, col.setHSL(rng(), 0.85, 0.62));
         this.scene.add(m);
         return m;
       });
@@ -469,9 +541,12 @@
       }
     }
     setChunk(i, scale) {
-      const s = this.cs[i] * scale, gem = TIERS[this.ct[i]].gem;
+      const s = this.cs[i] * scale, kind = TIERS[this.ct[i]].kind;
       this.q.fromArray(this.cq, i * 4);
-      if (gem) this.tmp2.set(s * 0.8, s * 1.25, s * 0.8); else this.tmp2.set(s, s * 0.78, s * 0.92);
+      if (kind === 'gem') this.tmp2.set(s * 0.8, s * 1.25, s * 0.8);
+      else if (kind === 'shard') this.tmp2.set(s * 0.55, s * 1.7, s * 0.55);
+      else if (kind === 'chunk') this.tmp2.set(s * 0.95, s * 0.8, s * 0.9);
+      else this.tmp2.set(s, s * 0.78, s * 0.92);
       this.m4.compose(this.tmp.set(this.cx[i], this.cy[i], this.cz[i]), this.q, this.tmp2);
       const mesh = this.oreMeshes[this.ct[i]];
       mesh.setMatrixAt(this.ci[i], this.m4);
@@ -656,35 +731,153 @@
       });
     }
 
+    buildPrestige() {
+      const g = (this.portal = new T.Group()); g.position.set(PRESTIGE.x, 0, PRESTIGE.z);
+      const dark = std(OL, { roughness: 0.6 });
+      const base = new T.Mesh(new T.CylinderGeometry(1.75, 1.85, 0.16, 36), dark); base.position.y = 0.08; base.receiveShadow = true; g.add(base);
+      const star = canvasTex((c, S) => {
+        const grd = c.createRadialGradient(S / 2, S / 2, 10, S / 2, S / 2, S / 2);
+        grd.addColorStop(0, '#c9a2ff'); grd.addColorStop(1, '#5d2fd1');
+        c.fillStyle = grd; c.beginPath(); c.arc(S / 2, S / 2, S / 2, 0, Math.PI * 2); c.fill();
+        c.beginPath();
+        for (let i = 0; i < 10; i++) {
+          const a = -Math.PI / 2 + (i * Math.PI) / 5, r = i % 2 ? S * 0.17 : S * 0.38;
+          c.lineTo(S / 2 + Math.cos(a) * r, S / 2 + Math.sin(a) * r);
+        }
+        c.closePath(); c.fillStyle = '#ffe14d'; c.fill(); c.lineWidth = 12; c.strokeStyle = '#2a1650'; c.lineJoin = 'round'; c.stroke();
+      });
+      const top = new T.Mesh(new T.CircleGeometry(1.6, 40), std(0xffffff, { map: star, roughness: 0.5, emissive: 0x2a1060 }));
+      top.rotation.x = -Math.PI / 2; top.position.y = 0.17; top.receiveShadow = true; g.add(top);
+      this.portalRing = new T.Mesh(new T.TorusGeometry(1.3, 0.08, 10, 48), std(0xffc330, { metalness: 1, roughness: 0.2, emissive: 0x6b4a00 }));
+      this.portalRing.rotation.x = Math.PI / 2; this.portalRing.position.y = 0.5; g.add(this.portalRing);
+      this.portalGem = new T.Mesh(new T.OctahedronGeometry(0.42, 0), std(0xb98aff, { metalness: 0.3, roughness: 0.05, flatShading: true, emissive: 0x5d2fd1 }));
+      this.portalGem.position.y = 1.9; this.portalGem.castShadow = true; g.add(this.portalGem);
+      this.scene.add(g);
+      this.prestLabel = this.label('', PRESTIGE.x, 3.0, PRESTIGE.z, 'm-tag m-prest');
+    }
+
     // ---------------- Upgrades ----------------
     applyUpgrades() {
-      const u = this.d.up;
+      const d = this.d, u = d.up, S = this.S;
       const t = TIERS[u.pickaxe - 1];
       this.spikeMat.color.setHex(t.color); this.spikeMat.metalness = t.metal; this.spikeMat.roughness = t.rough;
-      this.cart.scale.setScalar(1 + 0.035 * (u.cart - 1));
+      this.cart.scale.setScalar(1 + 0.03 * (u.cart - 1));
       this.vault.visible = u.collector > 0;
       this.pads.forEach((p) => this.renderPad(p));
       TIERS.forEach((t, i) => {
         const L = this['band' + i];
-        const ok = i <= u.pickaxe - 1;
-        L.el.className = 'm-label m-tag m-band' + (ok ? '' : ' locked');
-        L.el.innerHTML = ok ? `${t.name} <small>$${t.value}</small>` : `🔒 ${t.name} <small>PICKAXE LV${i + 1}</small>`;
+        const ok = i <= S.maxTier, rankLocked = i >= pickCap(d.rank);
+        L.el.className = 'm-label m-tag m-band' + (ok ? '' : rankLocked ? ' locked rank' : ' locked');
+        const ease = easeFactor(i, S.maxTier);
+        L.el.innerHTML = ok
+          ? i <= S.maxTier - SKIP_GAP
+            ? `${t.name} <small class="fast">⚡x${ease.toFixed(1)} · SKIPPED</small>`
+            : `${t.name} <small>${fmt(t.value * S.mult)}</small>${ease > 1 ? ` <small class="fast">⚡x${ease.toFixed(1)}</small>` : ''}`
+          : rankLocked ? `🔒 ${t.name} <small>⭐ RANK ${rankFor(i)}</small>` : `🔒 ${t.name} <small>PICKAXE LV${i + 1}</small>`;
       });
+      const r = d.rank;
+      this.prestLabel.el.innerHTML = r >= MAX_RANK ? '⭐ PERKS <small>💎' + d.gems + '</small>' : `⭐ PRESTIGE <small>${fmt(PRESTIGE_COST[r])}</small>`;
       this.updateCargoVisual();
     }
     renderPad(p) {
       const { u } = p, lvl = this.d.up[u.id];
-      const maxed = lvl >= u.max;
-      const cost = maxed ? 0 : u.cost(lvl);
+      const maxed = lvl >= u.max, capped = !maxed && u.cap && lvl >= u.cap(this.d);
+      const cost = maxed || capped ? 0 : u.cost(lvl);
       const paid = this.d.paid[u.id] || 0;
-      p.cost = cost; p.maxed = maxed;
-      p.L.el.classList.toggle('max', maxed);
+      p.cost = cost; p.maxed = maxed || capped;
+      p.L.el.classList.toggle('max', p.maxed);
       p.L.el.innerHTML = `
         <div class="n">${u.icon} ${u.name} <small>${u.id === 'collector' && lvl === 0 ? 'NEW' : 'LV' + lvl}</small></div>
-        ${maxed ? '<div class="c">MAX ★</div>' : `<div class="d">${u.next(lvl)}</div>
+        ${maxed ? '<div class="c">MAX ★</div>' : capped ? '<div class="d">Max for your rank</div><div class="c">⭐ PRESTIGE</div>' : `<div class="d">${u.next(lvl)}</div>
         <div class="c"><i class="coin"></i>${fmt(cost)}</div>
         <span class="progress"><i style="width:${(paid / cost) * 100}%"></i></span>`}`;
       p.bar = p.L.el.querySelector('.progress i');
+    }
+
+    // ---------------- Prestige ----------------
+    prestigeCheck() {
+      const dx = this.pos.x - PRESTIGE.x, dz = this.pos.y - PRESTIGE.z;
+      const on = dx * dx + dz * dz < 1.8 * 1.8 && (!this.moving || this.speed < 1);
+      const near = dx * dx + dz * dz < 2.4 * 2.4;
+      const r = this.d.rank;
+      this.prestLabel.el.classList.toggle('ready', r < MAX_RANK && this.d.money >= PRESTIGE_COST[r]);
+      this.stage.classList.toggle('pr-open', !this.el.prest.hidden);
+      if (on && !this.prestDismissed) {
+        if (this.el.prest.hidden) { this.el.prest.hidden = false; this.api.blip(660, 0.12, 'triangle', 1.5, 0.5); }
+        this.renderPrestige();
+      } else if (!near) {
+        this.el.prest.hidden = true; this.prestDismissed = false; this.prestArmed = false;
+      }
+    }
+    renderPrestige() {
+      const d = this.d, r = d.rank, max = r >= MAX_RANK;
+      const cost = max ? 0 : PRESTIGE_COST[r], can = !max && d.money >= cost, gems = max ? 0 : gemsFor(d.run, r);
+      // buttons are only rebuilt when something they show changes, so taps never land on a replaced element
+      const go = this.el.prGo;
+      go.hidden = max; go.disabled = !can;
+      go.textContent = !can ? `NEED ${fmt(cost - d.money)} MORE` : this.prestArmed ? 'TAP AGAIN TO PRESTIGE' : `PRESTIGE TO RANK ${r + 1}`;
+      const have = this.el.prInfo.querySelector('.pr-have');
+      if (have) have.textContent = fmt(d.money);
+      const key = [r, gems, d.gems, JSON.stringify(d.perks)].join('|');
+      if (key === this._prKey) return;
+      this._prKey = key;
+      if (max) {
+        this.el.prInfo.innerHTML = `<p class="pr-rank">RANK ${r} · MAX</p><p>Every ore is unlocked. Spend your Star Gems on perks.</p>`;
+      } else {
+        const a = TIERS[pickCap(r)], b = TIERS[pickCap(r) + 1];
+        this.el.prInfo.innerHTML = `
+          <p class="pr-rank">RANK ${r} → <b>${r + 1}</b></p>
+          <ul class="pr-list">
+            <li>💰 Ore value <b>x${2 ** r} → x${2 ** (r + 1)}</b> forever</li>
+            <li>⛏️ Pickaxe can reach <b>${a.name}</b>${b ? ` and <b>${b.name}</b>` : ''}</li>
+            <li>💎 <b>+${gems}</b> Star Gems for perks (earn more this run for more)</li>
+          </ul>
+          <p class="pr-warn">Resets money, upgrades and the mine. Keeps rank, gems and perks.</p>
+          <p class="pr-cost">Costs <b>${fmt(cost)}</b> · you have <span class="pr-have">${fmt(d.money)}</span></p>`;
+      }
+      this.el.prPerks.innerHTML = `<p class="pr-perks-h">PERKS <span>💎 ${d.gems} Star Gems</span></p>` + PERKS.map((p) => {
+        const lvl = d.perks[p.id], done = lvl >= p.max, c = done ? 0 : p.cost(lvl);
+        return `<div class="pr-perk"><span class="pi">${p.icon}</span>
+          <span class="pt"><b>${p.name}</b> <small>LV${lvl}/${p.max}</small><i>${p.desc}</i></span>
+          <button class="btn btn-sm b-purple" data-mine="perk" data-perk="${p.id}" ${done || d.gems < c ? 'disabled' : ''}>${done ? 'MAX' : '💎' + c}</button></div>`;
+      }).join('');
+    }
+    tryPrestige() {
+      const d = this.d, r = d.rank;
+      if (r >= MAX_RANK || d.money < PRESTIGE_COST[r]) return;
+      if (!this.prestArmed) { this.prestArmed = true; this.renderPrestige(); clearTimeout(this._armT); this._armT = setTimeout(() => { this.prestArmed = false; }, 3000); return; }
+      this.prestArmed = false;
+      const gems = gemsFor(d.run, r);
+      d.gems += gems; d.rank++; d.run = 0; d.money = 0; this.moneyShown = 0;
+      d.up = this.startLevels(); d.paid = {};
+      for (const u of UPG) d.paid[u.id] = 0;
+      this.cargo.length = 0; this.hopper.length = 0; this.pile = 0;
+      this.updateCargoVisual(); this.updateHopper(); this.updatePile();
+      for (let i = 0; i < this.N; i++) if (!this.alive[i]) { this.alive[i] = 1; this.setChunk(i, 1); }
+      this.regrowQ.length = 0; this.growing.length = 0;
+      this.applyUpgrades();
+      this.el.prest.hidden = true; this.prestDismissed = true; this._prKey = '';
+      this.banner(`RANK ${d.rank}! x${2 ** d.rank} VALUE`);
+      this.float(`+${gems} 💎`, this.tmp.set(PRESTIGE.x, 3, PRESTIGE.z), 'money');
+      this.fanfare(true);
+      if (this.api.settings.shake) this.shake = 0.6;
+      for (let i = 0; i < 24; i++) {
+        const a = (i / 24) * Math.PI * 2;
+        this.coinFly.add(this.tmp.set(PRESTIGE.x, 1.9, PRESTIGE.z), new T.Vector3(PRESTIGE.x + Math.cos(a) * 3, 0.2, PRESTIGE.z + Math.sin(a) * 3), 0.8, 3, 1, 0, null);
+      }
+      this.api.save();
+    }
+    buyPerk(id) {
+      const d = this.d, p = PERKS.find((x) => x.id === id);
+      if (!p || d.perks[id] >= p.max) return;
+      const c = p.cost(d.perks[id]);
+      if (d.gems < c) return;
+      d.gems -= c; d.perks[id]++;
+      if (id === 'head') { const s = this.startLevels(); for (const k of ['engine', 'cart', 'grinder']) d.up[k] = Math.max(d.up[k], s[k]); }
+      this.applyUpgrades(); this._prKey = ''; this.renderPrestige();
+      this.banner(`${p.name} LV${d.perks[id]}!`);
+      this.fanfare();
+      this.api.save();
     }
 
     // ---------------- Input ----------------
@@ -771,6 +964,7 @@
       this.grind(dt, S);
       this.collect(dt, S);
       this.payPads(dt);
+      this.prestigeCheck();
       this.regrow(dt);
       this.oreFly.update(dt);
       this.coinFly.update(dt);
@@ -855,16 +1049,21 @@
             cand.sort((a, b) => a[0] - b[0]);
             for (const [, i] of cand) {
               if (!this.alive[i]) continue;
-              if (this.budget < 1) break;
-              this.budget -= 1; this.knockChunk(i, fx, fz);
+              const c = 1 / easeFactor(this.ct[i], S.maxTier);
+              if (this.budget < c) break;
+              this.budget -= c; this.knockChunk(i, fx, fz);
             }
           }
         } else {
           cand.sort((a, b) => a[0] - b[0]);
           for (const [, i] of cand) {
             if (!this.alive[i]) continue; // can appear twice in the list
-            if (this.budget < 1 || this.cargo.length >= S.cap) break;
-            this.budget -= 1; this.mineChunk(i);
+            // ores below your pickaxe's best break faster (cost less of the drill budget)
+            const c = 1 / easeFactor(this.ct[i], S.maxTier);
+            if (this.budget < c || this.cargo.length >= S.cap) break;
+            this.budget -= c;
+            // ore far below your pickaxe isn't worth cart space: plough it aside
+            if (this.ct[i] <= S.maxTier - SKIP_GAP) this.knockChunk(i, fx, fz); else this.mineChunk(i, S);
           }
           this.mining = true;
         }
@@ -872,7 +1071,8 @@
       if (hard >= 0 && this.moving) {
         this.lastHard = this.time; this.hardTier = hard;
         if (this.throttle('hard', 1.6)) {
-          this.float(`PICKAXE LV${hard + 1} NEEDED!`, this.tmp.set(dx, 2.2, dz), 'warn');
+          const msg = hard >= pickCap(this.d.rank) ? `⭐ RANK ${rankFor(hard)} NEEDED!` : `PICKAXE LV${hard + 1} NEEDED!`;
+          this.float(msg, this.tmp.set(dx, 2.2, dz), 'warn');
           this.api.blip(150, 0.12, 'square', 0.8, 0.5);
         }
       }
@@ -885,29 +1085,40 @@
       // fling it sideways, away from the drill
       const side = Math.random() < 0.5 ? -1 : 1, d = 1.6 + Math.random() * 1.2;
       const to = new T.Vector3(this.cx[i] - fz * side * d + fx * 0.4, 0.2, this.cz[i] + fx * side * d + fz * 0.4);
-      this.oreFly.add(this.tmp.set(this.cx[i], this.cy[i], this.cz[i]), to, 0.35, 0.9, this.cs[i] * 1.6, TIERS[this.ct[i]].color, null);
+      this.oreFly.add(this.tmp.set(this.cx[i], this.cy[i], this.cz[i]), to, 0.35, 0.9, this.cs[i] * 1.6, TIERS[this.ct[i]].fly, null);
       if (this.throttle('plough', 0.09)) this.api.blip(110 + Math.random() * 40, 0.05, 'triangle', 0.7, 0.35);
     }
-    mineChunk(i) {
+    mineChunk(i, S) {
       this.alive[i] = 0; this.minedAt[i] = this.time;
       this.setChunk(i, 0);
       this.regrowQ.push(i);
       const tier = this.ct[i];
-      this.cargo.push(tier);
-      const slot = Math.min(47, Math.floor((this.cargo.length / this.S.cap) * 48));
+      const lucky = Math.random() < S.lucky;
+      this.cargo.push(tier | (lucky ? LUCKY : 0));
+      if (lucky && this.throttle('lucky', 0.4)) this.float('🍀 LUCKY x10', this.tmp.set(this.cx[i], 2, this.cz[i]), 'money');
+      if (tier > this.d.deep) this.newOre(tier);
+      const slot = Math.min(47, Math.floor((this.cargo.length / S.cap) * 48));
       this.oreFly.add(this.tmp.set(this.cx[i], this.cy[i], this.cz[i]),
-        (out) => this.cart.localToWorld(out.copy(this.slots[slot])), 0.32, 1.4, this.cs[i] * 1.5, TIERS[tier].color,
+        (out) => this.cart.localToWorld(out.copy(this.slots[slot])), 0.32, 1.4, this.cs[i] * 1.5, TIERS[tier].fly,
         () => this.updateCargoVisual());
-      if (this.throttle('tick', 0.06)) this.api.blip(320 + tier * 90 + Math.random() * 60, 0.035, 'triangle', 1.6, 0.35);
+      if (this.throttle('tick', 0.06)) this.api.blip(320 + (tier % 6) * 90 + Math.random() * 60, 0.035, 'triangle', 1.6, 0.35);
+    }
+    newOre(tier) {
+      const d = this.d;
+      d.deep = tier;
+      this.api.setProgress(Math.floor(((tier + 1) * 10) / TIERS.length));
+      if (tier === LAST && !d.won) { d.won = true; this.api.clear(); this.win(); }
+      else if (tier > 0) { this.banner(`NEW ORE: ${TIERS[tier].name}!`); this.fanfare(); }
+      this.api.save();
     }
     updateCargoVisual() {
       const c = this.cargo, S = this.S;
-      const vis = c.length ? Math.max(1, Math.ceil((48 * c.length) / S.cap)) : 0;
+      const vis = c.length ? Math.max(1, Math.ceil((48 * Math.min(c.length, S.cap)) / S.cap)) : 0;
       const col = new T.Color();
       for (let i = 0; i < vis; i++) {
         this.m4.makeTranslation(this.slots[i].x, this.slots[i].y, this.slots[i].z);
         this.cargoMesh.setMatrixAt(i, this.m4);
-        this.cargoMesh.setColorAt(i, col.setHex(TIERS[c[Math.floor((i * c.length) / vis)]].color));
+        this.cargoMesh.setColorAt(i, col.setHex(TIERS[c[Math.floor((i * c.length) / vis)] & 31].fly));
       }
       this.cargoMesh.count = vis;
       this.cargoMesh.instanceMatrix.needsUpdate = true;
@@ -921,11 +1132,11 @@
       this.unloadBudget += dt * Math.max(25, this.cargo.length * 1.5);
       while (this.unloadBudget >= 1 && this.cargo.length) {
         this.unloadBudget -= 1;
-        const tier = this.cargo.pop();
+        const entry = this.cargo.pop(), tier = entry & 31;
         const from = this.cart.localToWorld(this.tmp.copy(this.slots[Math.min(47, Math.floor(Math.random() * 12))]));
         const to = this.hopperTop.clone().add(this.tmp2.set((Math.random() - 0.5) * 1.4, 0, (Math.random() - 0.5) * 1.2));
-        this.oreFly.add(from, to, 0.45, 2.2, 0.32, TIERS[tier].color, () => { this.hopper.push(tier); this.updateHopper(); });
-        if (this.throttle('unload', 0.05)) this.api.blip(220 + tier * 40, 0.04, 'sawtooth', 0.7, 0.3);
+        this.oreFly.add(from, to, 0.45, 2.2, 0.32, TIERS[tier].fly, () => { this.hopper.push(entry); this.updateHopper(); });
+        if (this.throttle('unload', 0.05)) this.api.blip(220 + (tier % 6) * 40, 0.04, 'sawtooth', 0.7, 0.3);
       }
       this.updateCargoVisual();
     }
@@ -935,7 +1146,7 @@
         const s = this.hopSlots[i];
         this.m4.makeTranslation(s.x, s.y, s.z);
         this.hopperMesh.setMatrixAt(i, this.m4);
-        this.hopperMesh.setColorAt(i, col.setHex(TIERS[this.hopper[i]].color));
+        this.hopperMesh.setColorAt(i, col.setHex(TIERS[this.hopper[i] & 31].fly));
       }
       this.hopperMesh.count = n;
       this.hopperMesh.instanceMatrix.needsUpdate = true;
@@ -945,12 +1156,12 @@
     grind(dt, S) {
       this.grinding = this.hopper.length > 0;
       if (!this.grinding) { this.grindBudget = 0; return; }
-      this.grindBudget += S.grind * dt;
+      this.grindBudget += S.grind * (1 + this.hopper.length / 120) * dt; // big loads grind faster
       let changed = false;
       while (this.grindBudget >= 1 && this.hopper.length) {
         this.grindBudget -= 1; changed = true;
-        const tier = this.hopper.shift();
-        const value = TIERS[tier].value * S.mult;
+        const entry = this.hopper.shift();
+        const value = TIERS[entry & 31].value * S.mult * (entry & LUCKY ? 10 : 1);
         const spot = this.pileSpots[Math.floor(Math.random() * 60)];
         this.coinFly.add(this.chuteEnd, new T.Vector3(spot[0], 0.3, spot[2]), 0.5, 0.8, 1, 0, () => { this.pile += value; this.updatePile(); });
         if (this.throttle('grind', 0.08)) this.api.blip(90 + Math.random() * 40, 0.05, 'sawtooth', 1.4, 0.35);
@@ -995,18 +1206,12 @@
     }
     addMoney(a, at) {
       const d = this.d;
-      d.money += a; d.total += a;
+      d.money += a; d.total += a; d.run += a;
       this.float('+' + fmt(a), at, 'money');
-      while (d.ms < MILESTONES.length && d.total >= MILESTONES[d.ms]) {
-        d.ms++;
-        this.api.setProgress(d.ms);
-        if (d.ms < MILESTONES.length) { this.banner(`MILESTONE ${d.ms}/10!`); this.fanfare(); }
-      }
-      if (d.ms >= MILESTONES.length && !d.won) { d.won = true; this.api.clear(); this.win(); }
       this.api.save();
     }
     win() {
-      this.banner('$1,000,000!!!');
+      this.banner('PRISMITE!!!');
       this.fanfare(true);
       setTimeout(() => { if (!this.disposed) this.el.win.hidden = false; }, 900);
     }
@@ -1049,6 +1254,7 @@
       this.applyUpgrades();
       const lvl = this.d.up[id];
       this.banner(`${p.u.name} ${id === 'collector' && lvl === 1 ? 'UNLOCKED' : 'LV' + lvl}!`);
+      if (id === 'pickaxe') this.float('Older ores break faster ⚡', this.tmp.set(p.x, 3, p.z), 'money');
       this.fanfare();
       if (this.api.settings.shake) this.shake = 0.35;
       for (let i = 0; i < 14; i++) {
@@ -1102,6 +1308,10 @@
         this.arrow.position.set(this.pos.x - Math.sin(a) * 2.6, 2.6 + Math.sin(this.time * 6) * 0.15, this.pos.y - Math.cos(a) * 2.6);
       }
       for (const p of this.pads) p.holo.children[0].material.opacity = 0.18 + Math.sin(this.time * 3 + p.x) * 0.05;
+      this.portalRing.rotation.z += dt * 1.5;
+      this.portalRing.position.y = 0.5 + Math.sin(this.time * 2) * 0.12;
+      this.portalGem.rotation.y += dt * 2;
+      this.portalGem.position.y = 1.9 + Math.sin(this.time * 3) * 0.15;
     }
 
     updateCamera(dt) {
@@ -1154,11 +1364,11 @@
         this.el.cargoBar.style.width = (this.cargo.length / S.cap) * 100 + '%';
         this.el.cargo.classList.toggle('full', this.cargo.length >= S.cap);
       }
-      const k = d.ms, prev = k ? MILESTONES[k - 1] : 0, next = MILESTONES[Math.min(k, MILESTONES.length - 1)];
-      const gt = k >= MILESTONES.length ? 'CLEARED ★' : `MILESTONE ${k + 1}/10`;
-      if (gt !== this._gt) { this._gt = gt; this.el.goalT.textContent = gt; this.el.goalV.textContent = fmt(next); }
-      const pct = k >= MILESTONES.length ? 100 : Math.min(100, ((d.total - prev) / (next - prev)) * 100);
-      this.el.goalBar.style.width = pct.toFixed(1) + '%';
+      const gt = `⭐ RANK ${d.rank}${d.gems ? ' · 💎' + d.gems : ''}`, gv = d.won ? 'CLEARED ★' : `${d.deep + 1}/${TIERS.length} ORES`;
+      if (gt + gv !== this._gt) {
+        this._gt = gt + gv; this.el.goalT.textContent = gt; this.el.goalV.textContent = gv;
+        this.el.goalBar.style.width = (((d.deep + 1) / TIERS.length) * 100).toFixed(1) + '%';
+      }
       this.hintT = (this.hintT || 0) - 1;
       if (this.hintT <= 0 || force) {
         this.hintT = 15;
@@ -1173,7 +1383,12 @@
       if (this.pile > 0 && d.total < 40) return 'Drive over the coins to grab them 💰';
       if (d.total === 0 && this.cargo.length) return 'Fill up, then unload at the SELL pad';
       if (!d.bought && this.pads.some((p) => !p.maxed && d.money >= p.cost)) return 'Park on an UPGRADE pad to buy it ⬆️';
-      if (this.time - this.lastHard < 4) return `Upgrade your PICKAXE to mine ${TIERS[this.hardTier].name}!`;
+      if (d.rank < MAX_RANK && d.money >= PRESTIGE_COST[d.rank] && this.el.prest.hidden) return 'You can PRESTIGE! Park on the ⭐ pad below the grinder';
+      if (this.time - this.lastHard < 4) {
+        const t = this.hardTier;
+        return t >= pickCap(d.rank) ? `Reach ⭐ RANK ${rankFor(t)} to mine ${TIERS[t].name}. Prestige below the grinder!` : `Upgrade your PICKAXE to mine ${TIERS[t].name}!`;
+      }
+      if (d.rank < MAX_RANK && d.up.pickaxe >= pickCap(d.rank) && d.money < PRESTIGE_COST[d.rank]) return `Best pickaxe for this rank! Save ${fmt(PRESTIGE_COST[d.rank])} to PRESTIGE ⭐`;
       return '';
     }
 
@@ -1203,7 +1418,7 @@
       this.scene.environment && this.scene.environment.dispose();
       this.renderer.dispose();
       this.renderer.forceContextLoss();
-      this.stage.classList.remove('mine-stage');
+      this.stage.classList.remove('mine-stage', 'pr-open');
       this.stage.innerHTML = '';
     }
   }

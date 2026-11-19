@@ -59,7 +59,7 @@
           <circle cx="262" cy="64" r="15" fill="#ffc330" stroke="${OL}" stroke-width="4"/><text x="262" y="72" font-size="20" fill="${OL}">$</text>
           <circle cx="296" cy="86" r="11" fill="#ffc330" stroke="${OL}" stroke-width="3.5"/><text x="296" y="92" font-size="15" fill="${OL}">$</text>
         </g>
-        ${badge(212, 34, '$1M', '#27c46b', 64)}
+        ${badge(212, 34, '$1B', '#27c46b', 64)}
         ${sparkle(306, 40, .9, '#fff')}${sparkle(236, 92, .6, '#ffd21c')}
       </svg>`,
 

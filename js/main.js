@@ -154,7 +154,7 @@
       get settings() { return state.save.settings; },
       save,
       blip,
-      setProgress(n) { state.save.levels[g.id] = Math.max(state.save.levels[g.id] || 0, Math.min(n, g.levels)); save(); },
+      setProgress(n) { state.save.levels[g.id] = Math.max(0, Math.min(n, g.levels)); save(); },
       clear() { state.save.cleared[g.id] = true; state.save.levels[g.id] = g.levels; save(); },
     };
   }

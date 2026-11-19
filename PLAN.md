@@ -34,30 +34,42 @@ game's specific minigames, characters or look.
 ## The 5 games
 | # | Name | The "ad" | Real gameplay | Core systems |
 |---|------|----------|---------------|--------------|
-| 1 | **Ore Rush** ✅ playable | "$0 → $1,000,000!!" digger ploughing through piles of shiny ore | 3D arcade-idle: drive into ore, unload at the grinder, grab the coins, park on upgrade pads. Earn $1M. | three.js, instanced ore field, upgrade economy, milestones |
+| 1 | **Ore Rush** ✅ playable | "$0 → $1 BILLION!!" digger ploughing through piles of shiny ore | 3D arcade-idle: drive into ore, sell at the grinder, upgrade, prestige 5 times, reach the Prismite core. | three.js, instanced ore field, upgrade economy, prestige + perks |
 | 2 | **Draw to Save** | "Only genius can save him", bees attack a blob | Draw ONE line with limited ink; it becomes a physics wall; survive 10s of hornets. | Line drawing → physics body (Matter.js or small custom), swarm AI, timer |
 | 3 | **Merge Mayhem** | "LVL 1 → LVL 999" army merging | Buy units, drag identical ones to merge, press FIGHT, auto-battle vs. boss army. | Drag & drop grid, merge rules, coins, simple auto-battler |
 | 4 | **Door of Doom** | "Which one??" 3 doors: lava, shark, lion… | Quick-thinking logic: pick the safe door/item before the timer ends. Escalating trick questions. | Scene/choice data (JSON), timer, reaction animations |
 | 5 | **Glutton Hole** | "SATISFYING!!!" hole swallowing a city | Move a hole; swallow objects smaller than you to grow; hit the % target before time runs out. | Top-down movement, size checks, falling-in animation, scoring |
 
-Each game has **10 steps of progress** (levels, or milestones for Ore Rush). Finishing the last one marks it
+Each game has **10 steps of progress** (levels, or ore depth for Ore Rush). Finishing the last one marks it
 CLEARED (★) in the menu. Clearing all 5 unlocks a secret ending/credits.
 (Tower of Power was swapped out for Ore Rush; it's a spare idea if we ever want a 6th game.)
 
 ## Game 1: Ore Rush (built)
 - **Loop:** drill into ore → cart fills → unload on **SELL** → grinder turns ore into a coin pile → drive
-  over coins → park on an **upgrade pad** (money drains in) → dig deeper.
-- **Ore bands** (16 units deep each): Copper $1 → Silver $3 → Gold $8 → Emerald $25 → Ruby $70 → Diamond $200.
-  Each needs the matching pickaxe level; mined ore regrows after 2 minutes. A full cart ploughs
-  mineable ore aside (not collected), so regrown ore can never trap you away from base.
-- **Upgrades:** Pickaxe (tier + drill speed, 6 lv), Engine (speed, 8 lv), Cart (20 → 400 ore, 10 lv),
-  Grinder (x1 → x3.25 value + speed, 10 lv), Auto Collect (vault + vacuum tube, 5 lv).
-- **Milestones** (total earned): $100, $500, $2K, $6K, $20K, $60K, $150K, $350K, $650K, **$1M = cleared**.
-- **Tech:** three.js r159 (vendored, so `index.html` still works offline / from file://), ~7.4k instanced
-  ore chunks, spatial grid for collisions, adaptive quality (drops resolution, then ore shadows, under 40fps).
-- **Debug:** open `index.html?debug` → `ORE` in the console (`ORE.d.money = 1e6`, `ORE.simulate(5, ['w'])`).
-- **Next for this game:** music + richer SFX, offline earnings ("you earned $X while away"), particle dust
-  on the drill, a prestige/"new mine" mode after clearing, balance pass from real playtests, real-phone perf test.
+  over coins → park on an **upgrade pad** (money drains in) → dig deeper → **prestige** → repeat, richer.
+- **18 ores**, one 14-unit band each (252 units of track): Copper, Iron, Silver, Gold, Amethyst, Emerald,
+  Cobalt, Ruby, Rose Gold, Topaz, Mythril, Obsidian, Diamond, Uranium, Magma, Moonstone, Void, **Prismite**
+  (rainbow core). Values go $1 → $3M (about x2.4 per ore).
+- **Pickaxe:** each level unlocks the next ore. Every ore below your best breaks faster (x1.5, x2, x2.5…),
+  and ore 3+ tiers below is ploughed aside instead of filling your cart ("SKIPPED" on its sign).
+- **Regrowth:** mined ore grows back after 3 minutes. A full cart ploughs through ore it can mine, so you can
+  never be trapped away from base.
+- **Upgrades:** Pickaxe (18 lv, capped by rank), Engine (10), Cart (25 → 560 ore, 12), Grinder (x1 → x3.25, 10),
+  Auto Collect (vault + vacuum tube, 5).
+- **Prestige** (⭐ pad below the grinder), ranks 0 → 5:
+  - Costs $750K, $10M, $120M, $1.5B, $18B. Resets money, upgrades and the mine.
+  - Each rank: ore value x2 forever (AdVenture Capitalist angels), pickaxe cap +2 ores, so rank 0 reaches
+    Ruby and only rank 5 reaches Prismite (Idle Miner style tiers).
+  - Star Gems: 10 x √(earned this run ÷ cost), minimum 10 (Cookie Clicker heavenly chips). Spent on perks:
+    Turbo Treads, Big Cart, Golden Touch, Lucky Strike (ore worth x10), Head Start (+1 Engine/Cart/Grinder each run).
+- **Progress / clear:** menu progress = deepest ore reached (18 ores → 10 steps). Mining Prismite clears the game.
+- **Pacing (bot playthrough, greedy strategy):** rank 0 ≈ 60 min, ranks 1–4 ≈ 12–28 min each,
+  rank 5 to Prismite ≈ 25 min, about 2¾ hours total. A person should be faster than the bot.
+- **Tech:** three.js r159 (vendored, so `index.html` still works offline / from file://), ~19.7k instanced
+  ore chunks in 18 meshes (culled per band), spatial grid for collisions, adaptive quality.
+- **Debug:** open `index.html?debug` → `ORE` in the console (`ORE.d.money = 1e9`, `ORE.simulate(5, ['w'])`).
+- **Next for this game:** music + richer SFX, offline earnings ("you earned $X while away"), drill dust,
+  balance pass from real playtests, real-phone performance test.
 
 ## Milestones
 **M0 – Shell (DONE)**: animated title (logo, sunburst, hopping Blobs, "press any button"),

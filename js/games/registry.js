@@ -3,8 +3,8 @@
 // window.GAME_MODULES[id] = { create(stage, api) } returning { pause(), resume(), destroy() }.
 // Games without `scripts` show an "under construction" placeholder.
 window.GAMES = [
-  { id: 'mine', name: 'ORE RUSH', tagline: 'Dig ore, grind it into cash, upgrade EVERYTHING.',
-    adHook: '$0 → $1,000,000!!', color: '#ff4f7b', dark: '#c4224f', genre: 'Arcade idle mining', levels: 10,
+  { id: 'mine', name: 'ORE RUSH', tagline: '18 ores, 5 prestiges, one rainbow core at the bottom.',
+    adHook: '$0 → $1 BILLION!!', color: '#ff4f7b', dark: '#c4224f', genre: 'Arcade idle mining', levels: 10,
     scripts: ['js/vendor/three.min.js', 'js/games/mine/mine.js'] },
   { id: 'draw', name: 'DRAW TO SAVE', tagline: 'One line. Angry hornets. Protect the blob!',
     adHook: 'ONLY GENIUS CAN SAVE HIM', color: '#ffb81c', dark: '#d9860b', genre: 'Physics drawing', levels: 10 },
