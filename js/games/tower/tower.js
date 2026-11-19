@@ -11,11 +11,11 @@
 
   // ---------------------------------------------------------------- look & feel
   const THEMES = [
-    { sky: ['#6cc8ff', '#d9f3ff'], ground: '#5cc25a', tower: '#b7b0d9', room: '#6fb2ff', brick: '#5a9ef0', foe: '#7bd34a', icon: '🌿' },
-    { sky: ['#9ccfff', '#f1f9ff'], ground: '#eef6ff', tower: '#d2e3f5', room: '#a6d4ff', brick: '#8cc2f2', foe: '#5aa8f0', icon: '❄️' },
-    { sky: ['#ff8b52', '#ffd47a'], ground: '#7a2e2e', tower: '#9a5e4c', room: '#ff9b6b', brick: '#f0845a', foe: '#ff4060', icon: '🔥' },
-    { sky: ['#2e1650', '#7a4ab0'], ground: '#3d2a5c', tower: '#5d4d82', room: '#8f72d6', brick: '#7c60c4', foe: '#a6ffcf', icon: '💀' },
-    { sky: ['#ffc8ef', '#fff4d4'], ground: '#ffffff', tower: '#fff0c4', room: '#ffd96e', brick: '#f5c84f', foe: '#ffffff', icon: '✨' },
+    { sky: ['#4fb8ff', '#e9fbff'], ground: '#5cc25a', tower: '#c3bce3', room: '#6fb2ff', brick: '#5a9ef0', foe: '#7bd34a', icon: '🌿', roofA: '#6a8cff', roofB: '#ff4f7b', flag: '#ffe14d' },
+    { sky: ['#3f63b8', '#e9f7ff'], ground: '#f4fbff', tower: '#e2edf9', room: '#a6d4ff', brick: '#8cc2f2', foe: '#5aa8f0', icon: '❄️', roofA: '#5aa8f0', roofB: '#3a6fd0', flag: '#5dffb4', snow: true },
+    { sky: ['#4a0f24', '#ffc56b'], ground: '#2e1a20', tower: '#5e3530', room: '#ff9b6b', brick: '#e87a4e', foe: '#ff4060', icon: '🔥', roofA: '#3a2026', roofB: '#2a1418', flag: '#ff6a24' },
+    { sky: ['#0e0420', '#6a3aa0'], ground: '#2a1846', tower: '#4f4275', room: '#8f72d6', brick: '#7c60c4', foe: '#a6ffcf', icon: '💀', roofA: '#2e1650', roofB: '#1d0e33', flag: '#a6ffcf' },
+    { sky: ['#ff9fda', '#fff5d8'], ground: '#ffffff', tower: '#fff6e2', room: '#ffe08a', brick: '#f5c84f', foe: '#ffffff', icon: '✨', roofA: '#ffc21c', roofB: '#ff9fda', flag: '#ffffff' },
   ];
   const COLORS = [
     { id: 'blue', name: 'Sky', c: '#2fb4ff', price: 0 }, { id: 'pink', name: 'Bubblegum', c: '#ff7ab8', price: 40 },
@@ -115,6 +115,7 @@
       this.running = true;
       stage.classList.add('nt-stage');
       stage.innerHTML = `
+        <div class="nt-scene" aria-hidden="true"></div>
         <div class="nt-view nt-select">
           <div class="nt-sel-top">
             <h2 class="nt-logo"><span>NUMBER</span> TOWER</h2>
@@ -142,7 +143,7 @@
         <div class="nt-toast"></div>`;
       const q = (s) => stage.querySelector(s);
       this.el = {
-        select: q('.nt-select'), play: q('.nt-play'), worlds: q('.nt-worlds'), worldCard: q('.nt-world-card'), grid: q('.nt-grid'),
+        scene: q('.nt-scene'), select: q('.nt-select'), play: q('.nt-play'), worlds: q('.nt-worlds'), worldCard: q('.nt-world-card'), grid: q('.nt-grid'),
         totalStars: q('.nt-total-stars'), coins: q('.nt-coins'), lv: q('.nt-lv'), sub: q('.nt-sub'), chips: q('.nt-chips'),
         wrap: q('.nt-wrap'), board: q('.nt-board'), modal: q('.nt-modal'), panel: q('.nt-panel'), toast: q('.nt-toast'),
       };
@@ -155,6 +156,18 @@
     }
 
     worldOf(i) { return Math.floor(i / 25); }
+    // swap the painted backdrop (and per-world tower styling) when the world changes
+    setWorld(w) {
+      if (this.sceneWorld === w) return;
+      this.sceneWorld = w;
+      this.stage.dataset.world = w;
+      const layer = document.createElement('div');
+      layer.className = 'sc-layer';
+      layer.innerHTML = window.TOWER_SCENES ? window.TOWER_SCENES.html(w) : '';
+      const old = [...this.el.scene.children];
+      this.el.scene.appendChild(layer);
+      setTimeout(() => old.forEach((o) => o.remove()), 600);
+    }
     starsOf(i) { const m = this.d.stars[i] || 0; return (m & 1) + ((m >> 1) & 1) + ((m >> 2) & 1); }
     sfx(kind) {
       const b = this.api.blip;
@@ -179,6 +192,7 @@
       this.el.play.hidden = true; this.el.select.hidden = false; this.closeModal();
       const d = this.d;
       this.selWorld = world; d.world = world;
+      this.setWorld(world);
       const total = LEVELS.reduce((a, _, i) => a + this.starsOf(i), 0);
       this.el.totalStars.textContent = `${total}/${LEVELS.length * 3}`;
       this.el.coins.textContent = this.api.coins.toLocaleString();
@@ -218,6 +232,7 @@
       this.busy = false; this.t0 = null; this.elapsed = 0; this.over = false; this.hintCell = null;
       const th = THEMES[L.world];
       this.stage.style.setProperty('--nt-a', th.sky[0]); this.stage.style.setProperty('--nt-b', th.sky[1]);
+      this.setWorld(L.world);
       this.el.lv.textContent = `LEVEL ${L.id} · ${L.name}`;
       this.el.sub.textContent = `${WORLDS[L.world]} · ${L.diff}`;
       this.renderBoard();
@@ -262,7 +277,7 @@
       parts.push(`<div class="nt-ground" style="height:${GROUND}px"></div>`);
       // hero's little tower
       parts.push(`<div class="nt-tower nt-home" style="left:${SIDE}px;bottom:${GROUND - 6}px;width:${HERO_W}px;height:${RH + 6}px"></div>
-        <div class="nt-roof" style="left:${SIDE - 10}px;bottom:${GROUND + RH}px;width:${HERO_W + 20}px"><svg viewBox="0 0 100 60" preserveAspectRatio="none"><path d="M3 58 L50 4 L97 58 Z" fill="#6a8cff" stroke="#2a1650" stroke-width="5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><path d="M30 40 H70" stroke="#fff" stroke-width="3" opacity=".35" vector-effect="non-scaling-stroke"/></svg></div>
+        <div class="nt-roof" style="left:${SIDE - 10}px;bottom:${GROUND + RH}px;width:${HERO_W + 20}px"><svg viewBox="0 0 100 60" preserveAspectRatio="none"><path d="M3 58 L50 4 L97 58 Z" fill="${th.roofA}" stroke="#2a1650" stroke-width="5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>${th.snow ? '<path d="M22 32 L50 4 L78 32 Q68 26 62 34 Q56 26 50 34 Q44 26 38 34 Q32 26 22 32Z" fill="#fff" stroke="#2a1650" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>' : '<path d="M30 40 H70" stroke="#fff" stroke-width="3" opacity=".35" vector-effect="non-scaling-stroke"/>'}</svg></div>
         <div class="nt-room home" style="left:${SIDE + 8}px;bottom:${GROUND + 6}px;width:${HERO_W - 16}px;height:${RH - 12}px"></div>`);
       // enemy towers + the walkway on top
       for (let c = 0; c < L.W; c++) {
@@ -279,7 +294,8 @@
       }
       // boss keep
       parts.push(`<div class="nt-tower nt-keep" style="left:${g.bossX}px;bottom:${g.bossY - 4}px;width:${BOSS_W}px;height:${BOSS_H + 4}px"></div>
-        <div class="nt-roof boss" style="left:${g.bossX - 14}px;bottom:${g.bossY + BOSS_H}px;width:${BOSS_W + 28}px"><svg viewBox="0 0 100 60" preserveAspectRatio="none"><path d="M3 58 L50 4 L97 58 Z" fill="#ff4f7b" stroke="#2a1650" stroke-width="5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/><path d="M30 40 H70" stroke="#fff" stroke-width="3" opacity=".35" vector-effect="non-scaling-stroke"/></svg></div>`);
+        <div class="nt-roof boss" style="left:${g.bossX - 14}px;bottom:${g.bossY + BOSS_H}px;width:${BOSS_W + 28}px"><svg viewBox="0 0 100 60" preserveAspectRatio="none"><path d="M3 58 L50 4 L97 58 Z" fill="${th.roofB}" stroke="#2a1650" stroke-width="5" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>${th.snow ? '<path d="M22 32 L50 4 L78 32 Q68 26 62 34 Q56 26 50 34 Q44 26 38 34 Q32 26 22 32Z" fill="#fff" stroke="#2a1650" stroke-width="3" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>' : '<path d="M30 40 H70" stroke="#fff" stroke-width="3" opacity=".35" vector-effect="non-scaling-stroke"/>'}</svg></div>
+        <div class="nt-flag" style="left:${g.bossX + BOSS_W / 2 - 3}px;bottom:${g.bossY + BOSS_H + 58}px"><svg viewBox="0 0 60 70" aria-hidden="true"><path d="M4 70 V4" stroke="#2a1650" stroke-width="6" stroke-linecap="round"/><path class="nt-flag-cloth" d="M6 6 Q30 0 52 10 Q38 18 52 28 Q30 34 6 26Z" fill="${th.flag}" stroke="#2a1650" stroke-width="4" stroke-linejoin="round"/></svg></div>`);
       // rooms
       for (let f = 0; f < L.H; f++) for (let c = 0; c < L.W; c++) parts.push(this.roomHTML(f, c));
       parts.push(this.roomHTML(L.H, -1));
@@ -363,7 +379,7 @@
       if (this.view !== 'play' || !this.L) return;
       const g = this.geom(), wrap = this.el.wrap;
       const s = Math.min(wrap.clientWidth / g.W, wrap.clientHeight / g.H, 1.2);
-      this.el.board.style.transform = `translate(-50%, -50%) scale(${s})`;
+      this.el.board.style.transform = `translateX(-50%) scale(${s})`;
     }
 
     // which rooms can be entered next; which are adjacent but blocked
@@ -651,6 +667,7 @@
       this.stage.removeEventListener('click', this.onClick);
       this.stage.classList.remove('nt-stage');
       this.stage.style.removeProperty('--nt-a'); this.stage.style.removeProperty('--nt-b');
+      delete this.stage.dataset.world;
       this.stage.innerHTML = '';
     }
   }

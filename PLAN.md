@@ -95,6 +95,12 @@ CLEARED (★) in the menu. Clearing all 5 unlocks a secret ending/credits.
   a player could really have on each floor, plays every route, and picks the boss number so the right share
   of routes win. It writes `js/games/tower/levels.js` (deterministic; rerun with `node tools/gen-tower-levels.js`).
   Every level is checked: solvable, stored solution wins, third star possible, greedy fails from Medium up.
+- **Look:** every world has its own painted, animated backdrop (`js/games/tower/scenes.js`): Grasslands
+  (smiling sun, hills, castle, butterflies, pollen), Frozen Kingdom (aurora, snowy peaks, frozen lake, snowman,
+  falling snow), Burning Lands (erupting volcano, lava river, embers), Cursed Realm (giant moon, bats, haunted
+  castle, graves, fog, wisps), Celestial Kingdom (rainbow, floating temple islands, waterfalls, cloud sea,
+  sparkles). Towers, roofs, flags and ground change per world too (snow caps and icicles, cracked obsidian
+  with lava glow, cobwebbed stone, marble with gold trim).
 - **Debug:** `index.html?debug` exposes `NT` (e.g. `NT.d.unlocked = 125; NT.openLevel(99)`).
 - **Next for this game:** playtest and hand-tune favourite levels, a "daily tower", sound polish.
 

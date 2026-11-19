@@ -8,7 +8,7 @@ window.GAMES = [
     scripts: ['js/vendor/three.min.js', 'js/games/mine/mine.js'] },
   { id: 'tower', name: 'NUMBER TOWER', tagline: 'Climb 125 towers. Pick your gates. Beat the bigger number.',
     adHook: 'ONLY 1% PASS LEVEL 47!', color: '#ffb81c', dark: '#d9860b', genre: 'Number puzzle', levels: 10,
-    scripts: ['js/games/tower/logic.js', 'js/games/tower/levels.js', 'js/games/tower/tower.js'] },
+    scripts: ['js/games/tower/logic.js', 'js/games/tower/levels.js', 'js/games/tower/scenes.js', 'js/games/tower/tower.js'] },
   { id: 'merge', name: 'MERGE MAYHEM', tagline: 'Merge your troops. Crush the boss army.',
     adHook: 'LVL 1 → LVL 999!!', color: '#2fb4ff', dark: '#1479c4', genre: 'Merge + auto-battle', levels: 10 },
   { id: 'doors', name: 'DOOR OF DOOM', tagline: 'Pick the right door… before time runs out.',

@@ -607,3 +607,93 @@ input[type=range]::-moz-range-thumb { width: 24px; height: 24px; border-radius: 
 @media (max-width: 520px) {
   .nt-actions .btn { font-size: 14px; padding: 6px 10px 8px; margin: 6px; }
 }
+
+/* ---------- Number Tower: painted world backdrops ---------- */
+.nt-scene { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.nt-stage .nt-view { z-index: 1; }
+.nt-stage .nt-modal, .nt-stage .nt-toast { z-index: 9; }
+.nt-select { background: none; }
+.sc-layer { position: absolute; inset: 0; animation: sc-in .6s ease-out; }
+@keyframes sc-in { from { opacity: 0; } }
+.sc-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.sc-svg g, .sc-svg circle, .sc-svg path { transform-box: fill-box; }
+.sc-spin { transform-origin: center; animation: sc-spin 70s linear infinite; }
+.sc-spin.slow { transform-origin: 50% 0; animation: sc-sway 14s ease-in-out infinite alternate; }
+@keyframes sc-spin { to { transform: rotate(360deg); } }
+@keyframes sc-sway { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+.sc-drift.a { animation: sc-drift 38s ease-in-out infinite alternate; }
+.sc-drift.b { animation: sc-drift 52s ease-in-out infinite alternate-reverse; }
+@keyframes sc-drift { from { transform: translateX(-70px); } to { transform: translateX(70px); } }
+.sc-bob { animation: sc-bob 6s ease-in-out infinite; }
+.sc-bob.b { animation-delay: -2s; animation-duration: 7s; }
+.sc-bob.c { animation-delay: -4s; animation-duration: 5s; }
+@keyframes sc-bob { 50% { transform: translateY(-16px); } }
+.sc-pulse { transform-origin: center; animation: sc-pulse 2.6s ease-in-out infinite; }
+@keyframes sc-pulse { 50% { opacity: .55; transform: scale(.92); } }
+.sc-glow { animation: sc-glow 1.8s ease-in-out infinite; }
+@keyframes sc-glow { 50% { opacity: .6; } }
+.sc-puff { transform-origin: center; animation: sc-puff 7s ease-out infinite; }
+.sc-puff.p1 { animation-delay: -1.4s; } .sc-puff.p2 { animation-delay: -2.8s; } .sc-puff.p3 { animation-delay: -4.2s; } .sc-puff.p4 { animation-delay: -5.6s; }
+@keyframes sc-puff { from { transform: translate(0, 40px) scale(.4); opacity: 0; } 20% { opacity: .8; } to { transform: translate(60px, -260px) scale(1.6); opacity: 0; } }
+.sc-aurora { animation: sc-aurora 9s ease-in-out infinite alternate; }
+.sc-aurora.two { animation-duration: 13s; animation-delay: -4s; }
+@keyframes sc-aurora { from { transform: translateX(-50px) skewX(-6deg); opacity: .55; } to { transform: translateX(50px) skewX(6deg); opacity: 1; } }
+.sc-fog.a { animation: sc-fog 26s ease-in-out infinite alternate; }
+.sc-fog.b { animation: sc-fog 34s ease-in-out infinite alternate-reverse; }
+@keyframes sc-fog { from { transform: translateX(-160px); } to { transform: translateX(160px); } }
+.sc-tw { transform-origin: center; animation: sc-tw 2.6s ease-in-out infinite; }
+@keyframes sc-tw { 50% { opacity: .2; transform: scale(.6); } }
+.sc-bat { animation: sc-bat 18s linear infinite; }
+.sc-bat.b2 { animation-duration: 23s; animation-delay: -8s; }
+.sc-bat.b3 { animation-duration: 27s; animation-delay: -15s; }
+@keyframes sc-bat { 0% { transform: translate(-120px, 0); } 25% { transform: translate(300px, -50px); } 50% { transform: translate(800px, 30px); } 75% { transform: translate(1250px, -40px); } 100% { transform: translate(1760px, 10px); } }
+.sc-fly { animation: sc-fly 9s ease-in-out infinite; }
+.sc-fly.f2 { animation-duration: 11s; animation-delay: -3s; }
+.sc-fly.f3 { animation-duration: 13s; animation-delay: -6s; }
+@keyframes sc-fly { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(70px, -50px); } 50% { transform: translate(130px, 10px); } 75% { transform: translate(50px, 40px); } }
+.sc-flap { transform-origin: center; animation: sc-flap .22s ease-in-out infinite alternate; }
+@keyframes sc-flap { to { transform: scaleY(.45); } }
+.sc-parts { position: absolute; inset: 0; }
+.sc-p { position: absolute; border-radius: 50%; will-change: transform; }
+.sc-p.pollen { background: #fffbd0; opacity: .85; animation: sc-float linear infinite; }
+.sc-p.snow { background: #fff; box-shadow: 0 0 4px #fff; animation: sc-fall linear infinite; }
+.sc-p.ember { background: #ffc23d; box-shadow: 0 0 8px 2px #ff6a24; animation: sc-rise linear infinite; }
+.sc-p.wisp { background: #b9ffdc; box-shadow: 0 0 12px 4px rgba(166,255,207,.55); animation: sc-float linear infinite; }
+.sc-p.spark { background: #fff; border-radius: 0; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: sc-tw 2.4s ease-in-out infinite; }
+@keyframes sc-fall { from { transform: translate(0, -6vh); } 50% { transform: translate(24px, 50vh); } to { transform: translate(-12px, 106vh); } }
+@keyframes sc-rise { from { transform: translate(0, 0); opacity: 0; } 12% { opacity: 1; } to { transform: translate(40px, -105vh); opacity: 0; } }
+@keyframes sc-float { 0% { transform: translate(0, 0); opacity: 0; } 20% { opacity: .9; } 50% { transform: translate(40px, -60px); } 80% { opacity: .9; } 100% { transform: translate(-20px, -120px); opacity: 0; } }
+
+/* the board stands on the bottom of the scene */
+.nt-board { top: auto; bottom: 0; transform-origin: 50% 100%; }
+.nt-wrap { margin-bottom: 0; }
+.nt-flag { position: absolute; width: 46px; height: 54px; z-index: 1; }
+.nt-flag svg { width: 100%; height: 100%; overflow: visible; }
+.nt-flag-cloth { transform-box: fill-box; transform-origin: 0 50%; animation: nt-wave 1.6s ease-in-out infinite alternate; }
+@keyframes nt-wave { from { transform: skewY(-6deg) scaleX(1); } to { transform: skewY(6deg) scaleX(.86); } }
+
+/* ground platforms per world */
+.nt-ground { left: 4px; right: 4px; border: 5px solid var(--ol); border-radius: 22px 22px 12px 12px;
+  background: linear-gradient(var(--g-top, #5cc25a) 0 14px, var(--ol) 14px 19px, var(--g-body, #9a5b2e) 19px); }
+.nt-stage[data-world="0"] .nt-ground { --g-top: #5cc25a; --g-body: #a8653a; }
+.nt-stage[data-world="1"] .nt-ground { --g-top: #ffffff; --g-body: #bcd6ef; }
+.nt-stage[data-world="2"] .nt-ground { --g-top: #3a2026; --g-body: #24121a; box-shadow: 0 -2px 18px rgba(255,106,36,.55); }
+.nt-stage[data-world="3"] .nt-ground { --g-top: #4a2f78; --g-body: #24133f; }
+.nt-stage[data-world="4"] .nt-ground { --g-top: #ffffff; --g-body: #f1e2ff; border-radius: 40px; }
+
+/* towers per world */
+.nt-stage[data-world="0"] .nt-tower { box-shadow: inset 0 0 0 5px rgba(255,255,255,.35), inset 0 -26px 0 -16px rgba(60,170,80,.55); }
+.nt-stage[data-world="1"] .nt-tower::before { background: repeating-linear-gradient(90deg, #fff 0 18px, transparent 18px 30px); }
+.nt-stage[data-world="1"] .nt-walk { background: #fff; }
+.nt-stage[data-world="1"] .nt-walk::after { content: ''; position: absolute; left: 6px; right: 6px; top: 100%; height: 22px; margin-top: 4px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='22'%3E%3Cpath d='M1 0 H33 L28 0 L23 20 L18 0 L13 0 L8 12 L4 0Z' fill='%23e6f7ff' stroke='%232a1650' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E") repeat-x; }
+.nt-stage[data-world="2"] .nt-tower { box-shadow: inset 0 0 0 5px rgba(255,140,60,.3), 0 0 26px rgba(255,90,30,.45);
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='110'%3E%3Cpath d='M12 0 L24 22 L15 38 L30 62 M64 34 L54 52 L70 72 L60 110' stroke='%23ff8a3d' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"), var(--tower); }
+.nt-stage[data-world="2"] .nt-tower::before { background: repeating-linear-gradient(90deg, #4a2620 0 18px, transparent 18px 30px); }
+.nt-stage[data-world="3"] .nt-tower::after { content: ''; position: absolute; left: 0; top: 0; width: 54px; height: 54px; opacity: .8;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='54' height='54'%3E%3Cg stroke='%23ece6ff' stroke-width='1.6' fill='none'%3E%3Cpath d='M0 0 L52 52 M0 0 L52 18 M0 0 L18 52'/%3E%3Cpath d='M14 5 Q16 16 5 14 M28 10 Q30 30 10 28 M42 15 Q45 45 15 42'/%3E%3C/g%3E%3C/svg%3E") no-repeat; }
+.nt-stage[data-world="3"] .nt-tower { box-shadow: inset 0 0 0 5px rgba(166,255,207,.18), 0 0 30px rgba(120,60,200,.45); }
+.nt-stage[data-world="4"] .nt-tower { box-shadow: inset 0 0 0 5px #ffd96e, inset 0 0 0 9px #fff; }
+.nt-stage[data-world="4"] .nt-tower::before { background: repeating-linear-gradient(90deg, #ffd96e 0 18px, transparent 18px 30px); }
+.nt-stage[data-world="4"] .nt-walk { background: #ffd96e; }
+.nt-stage[data-world="2"] .nt-power, .nt-stage[data-world="3"] .nt-power { color: #b8f7ff; }
