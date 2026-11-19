@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Real Fake Ad Games</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ============ TITLE SCREEN ============ -->
+    <section id="screen-title" class="screen active" aria-label="Title screen">
+      <div class="ad-banner top">⚠ SPONSORED ⚠ NOT A REAL AD ⚠ SPONSORED ⚠ NOT A REAL AD ⚠ SPONSORED ⚠</div>
+      <div class="title-wrap">
+        <p class="title-kicker">YOU SAW THEM IN THE ADS.</p>
+        <h1 class="title-logo">
+          <span class="l1">REAL</span>
+          <span class="l2">FAKE AD</span>
+          <span class="l3">GAMES!</span>
+        </h1>
+        <p class="title-sub">5 games that never existed… until now.</p>
+        <button id="btn-start" class="btn btn-big pulse" data-action="start">TAP TO PLAY</button>
+        <p class="title-fine">*Only 1% of players can clear them all</p>
+      </div>
+      <div class="ad-banner bottom">DOWNLOAD NOW ▸ FREE ▸ NO ADS (IRONICALLY) ▸ DOWNLOAD NOW ▸ FREE ▸</div>
+      <span class="version">v0.1.0</span>
+    </section>
+
+    <!-- ============ MAIN MENU ============ -->
+    <section id="screen-menu" class="screen" aria-label="Game select">
+      <header class="menu-header">
+        <button class="btn btn-small" data-action="back-title">◀ TITLE</button>
+        <h2>PICK A GAME</h2>
+        <div class="menu-header-right">
+          <span class="trophy" id="clear-count">🏆 0 / 5</span>
+          <button class="btn btn-small btn-icon" data-action="settings" aria-label="Settings">⚙</button>
+        </div>
+      </header>
+      <div id="game-grid" class="game-grid" role="list"></div>
+      <footer class="menu-footer">
+        <button class="btn btn-small" data-action="credits">CREDITS</button>
+        <span class="hint">Arrow keys / WASD to move · Enter to select · Esc to go back</span>
+      </footer>
+    </section>
+
+    <!-- ============ GAME SCREEN (placeholder host) ============ -->
+    <section id="screen-game" class="screen" aria-label="Game">
+      <header class="game-hud">
+        <button class="btn btn-small" data-action="back-menu">◀ MENU</button>
+        <h2 id="game-title">GAME</h2>
+        <button class="btn btn-small" data-action="pause">❚❚</button>
+      </header>
+      <div id="game-stage" class="game-stage"></div>
+    </section>
+
+    <!-- ============ SETTINGS (overlay) ============ -->
+    <div id="overlay-settings" class="overlay" role="dialog" aria-label="Settings">
+      <div class="panel">
+        <h2>SETTINGS</h2>
+        <label class="row">Music <input type="range" id="set-music" min="0" max="100" value="70"></label>
+        <label class="row">SFX <input type="range" id="set-sfx" min="0" max="100" value="80"></label>
+        <label class="row">Screen shake <input type="checkbox" id="set-shake" checked></label>
+        <button class="btn btn-small danger" data-action="reset-progress">RESET PROGRESS</button>
+        <button class="btn" data-action="close-overlay">DONE</button>
+      </div>
+    </div>
+
+    <!-- ============ CREDITS (overlay) ============ -->
+    <div id="overlay-credits" class="overlay" role="dialog" aria-label="Credits">
+      <div class="panel">
+        <h2>CREDITS</h2>
+        <p>A tribute to every mobile ad that lied to us.</p>
+        <p>Design &amp; Code: You</p>
+        <p>All games are original concepts.</p>
+        <button class="btn" data-action="close-overlay">CLOSE</button>
+      </div>
+    </div>
+
+    <!-- ============ PAUSE (overlay) ============ -->
+    <div id="overlay-pause" class="overlay" role="dialog" aria-label="Paused">
+      <div class="panel">
+        <h2>PAUSED</h2>
+        <button class="btn" data-action="close-overlay">RESUME</button>
+        <button class="btn" data-action="restart">RESTART</button>
+        <button class="btn" data-action="back-menu">QUIT TO MENU</button>
+      </div>
+    </div>
+
+  </div>
+  <script src="js/games/registry.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
