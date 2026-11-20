@@ -2,7 +2,9 @@
 // They avoid ids so they can be repeated on the page safely.
 (() => {
   const OL = '#2a1650';
-  const blob = (x, y, s, c) => `<use href="#blob" x="${x}" y="${y}" width="${s}" height="${s}" style="color:${c}"/>`;
+  const ST = window.STICK;
+  const fig = (o) => ST.figure(o);
+  const beast = (kind, x, y, s, o = {}) => `<g transform="translate(${x} ${y}) scale(${s})">${ST.creature(kind, o)}</g>`;
   const badge = (x, y, n, fill, w = 46) => `
     <g transform="translate(${x} ${y})">
       <rect x="${-w / 2}" y="-15" width="${w}" height="30" rx="15" fill="${fill}" stroke="${OL}" stroke-width="4"/>
@@ -40,7 +42,7 @@
         <circle cx="36" cy="86" r="7" fill="#1fd67a" stroke="${OL}" stroke-width="3.5"/>
         <circle cx="45" cy="158" r="12" fill="${OL}"/><circle cx="45" cy="158" r="4.5" fill="#ffc21c"/>
         <rect x="100" y="62" width="7" height="54" fill="${OL}"/><rect x="142" y="62" width="7" height="54" fill="${OL}"/>
-        ${blob(103, 66, 42, '#2fb4ff')}
+        ${fig({ x: 124, y: 124, s: 0.46, pose: 'wave', mood: 'happy', hat: 'hardhat', scarf: '#2fb4ff' })}
         <rect x="90" y="54" width="68" height="13" rx="5" fill="#ff4f7b" stroke="${OL}" stroke-width="4"/>
         <rect x="88" y="110" width="102" height="42" rx="10" fill="#ffc21c" stroke="${OL}" stroke-width="5"/>
         <rect x="150" y="94" width="38" height="20" rx="5" fill="#ffc21c" stroke="${OL}" stroke-width="4.5"/>
@@ -68,7 +70,7 @@
         <rect x="14" y="128" width="62" height="58" rx="5" fill="#b7b0d9" stroke="${OL}" stroke-width="5"/>
         <path d="M8 130 L45 98 L82 130 Z" fill="#6a8cff" stroke="${OL}" stroke-width="5" stroke-linejoin="round"/>
         <rect x="22" y="136" width="46" height="44" rx="4" fill="#6fb2ff" stroke="${OL}" stroke-width="4"/>
-        ${blob(26, 142, 36, '#2fb4ff')}
+        ${ST.hero({ color: '#ff4f7b' }, 40, 180, 0.33)}
         <text x="45" y="134" font-size="17" text-anchor="middle" fill="#9df3ff" stroke="${OL}" stroke-width="5" paint-order="stroke" font-family="'Lilita One', sans-serif">22</text>
         <rect x="150" y="10" width="112" height="178" rx="6" fill="#b7b0d9" stroke="${OL}" stroke-width="5"/>
         <path d="M150 10 v-10 h14 v10 h14 v-10 h14 v10 h14 v-10 h14 v10 h14 v-10 h14 v10 h14 v-10 h0" fill="#b7b0d9" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/>
@@ -76,7 +78,7 @@
         <text x="206" y="38" font-size="18" text-anchor="middle" fill="#9df3ff" stroke="${OL}" stroke-width="5" paint-order="stroke" font-family="'Lilita One', sans-serif">×12</text>
         <g transform="translate(220 40) rotate(-35)"><rect x="-4" y="-22" width="8" height="30" rx="2" fill="#e6f3ff" stroke="${OL}" stroke-width="3"/><rect x="-11" y="6" width="22" height="6" rx="3" fill="#ffc21c" stroke="${OL}" stroke-width="3"/></g>
         <text x="206" y="94" font-size="18" text-anchor="middle" fill="#ff6b7a" stroke="${OL}" stroke-width="5" paint-order="stroke" font-family="'Lilita One', sans-serif">238</text>
-        ${blob(204, 96, 28, '#7bd34a')}
+        ${beast('goblin', 186, 88, 0.38, { color: '#7bd34a' })}
         <text x="206" y="150" font-size="18" text-anchor="middle" fill="#ff6b7a" stroke="${OL}" stroke-width="5" paint-order="stroke" font-family="'Lilita One', sans-serif">÷3</text>
         <g transform="translate(222 154) rotate(35)"><rect x="-4" y="-22" width="8" height="30" rx="2" fill="#c2453e" stroke="${OL}" stroke-width="3"/><rect x="-11" y="6" width="22" height="6" rx="3" fill="#5d2fd1" stroke="${OL}" stroke-width="3"/></g>
         <path d="M90 150 Q120 110 156 96" fill="none" stroke="#fff" stroke-width="4" stroke-dasharray="2 9" stroke-linecap="round"/>
@@ -87,22 +89,20 @@
 
     merge: `
       <svg viewBox="0 0 320 200" aria-hidden="true">${ground}
-        ${blob(8, 120, 56, '#9be15d')}${badge(36, 112, 1, '#27c46b', 32)}
+        ${fig({ x: 34, y: 180, s: 0.5, pose: 'cheer', mood: 'happy', hat: 'viking', scarf: '#9be15d' })}${badge(36, 96, 1, '#27c46b', 32)}
         <text x="78" y="160" font-size="40" text-anchor="middle" fill="#fff" stroke="${OL}" stroke-width="7" paint-order="stroke" font-family="'Lilita One', sans-serif">+</text>
-        ${blob(94, 120, 56, '#9be15d')}${badge(122, 112, 1, '#27c46b', 32)}
+        ${fig({ x: 120, y: 180, s: 0.5, pose: 'cheer', mood: 'happy', hat: 'viking', scarf: '#9be15d' })}${badge(122, 96, 1, '#27c46b', 32)}
         <path d="M160 140 H182 V126 L208 150 L182 174 V160 H160 Z" fill="#fff" stroke="${OL}" stroke-width="5" stroke-linejoin="round"/>
-        ${blob(204, 70, 116, '#ffb81c')}
-        <path d="M232 84 L238 48 L252 66 L262 40 L272 66 L286 48 L292 84 Z" fill="#ffe14d" stroke="${OL}" stroke-width="5" stroke-linejoin="round"/>
-        <circle cx="262" cy="64" r="5" fill="#ff4f7b" stroke="${OL}" stroke-width="3"/>
-        ${badge(208, 52, 'LV999', '#e8304f', 74)}
+        ${fig({ x: 250, y: 192, s: 0.98, pose: 'hero', mood: 'hero', hat: 'crown', cape: '#ffb81c', coat: '#b9c3d6', sword: true })}
+        ${badge(196, 50, 'LV999', '#e8304f', 74)}
         ${sparkle(306, 110, .9)}${sparkle(196, 112, .6, '#ffd21c')}${sparkle(150, 60, .8)}
       </svg>`,
 
     pick: `
       <svg viewBox="0 0 320 200" aria-hidden="true">
         <g stroke="#fff" stroke-width="3" opacity=".55" stroke-linecap="round">${[[40, 20], [90, 50], [150, 14], [210, 40], [270, 18], [60, 90], [250, 80], [120, 96]].map(([x, y]) => `<path d="M${x} ${y} l-6 18"/>`).join('')}</g>
-        ${blob(70, 46, 70, '#9fdcff')}${blob(140, 50, 62, '#ffb3d0')}
-        <path d="M60 70 L52 74 M60 84 L52 86 M212 70 L220 74 M212 84 L220 86" stroke="${OL}" stroke-width="3.5" stroke-linecap="round"/>
+        ${ST.bo('cold', 116, 136, 0.78)}${ST.pip('cold', 196, 136, 0.74)}
+        <path d="M90 52 L82 56 M90 66 L82 68 M222 54 L230 58 M222 68 L230 70" stroke="${OL}" stroke-width="3.5" stroke-linecap="round"/>
         <rect x="70" y="128" width="180" height="62" rx="12" fill="#fff" stroke="${OL}" stroke-width="5"/>
         <rect x="82" y="136" width="70" height="46" rx="9" fill="#ffc21c" stroke="${OL}" stroke-width="4"/>
         <rect x="168" y="136" width="70" height="46" rx="9" fill="#ffc21c" stroke="${OL}" stroke-width="4"/>

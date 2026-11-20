@@ -1,5 +1,5 @@
 /* =====================================================================
-   PICK ONE! — art library: backgrounds, the blob duo (Bo & Pip) with moods,
+   PICK ONE! — art library: backgrounds, the stick-figure duo (Bo & Pip) with moods,
    threats, and the item icons. All inline SVG in our chunky outlined style.
    ===================================================================== */
 (() => {
@@ -65,51 +65,25 @@
       ${cloud(60, 80, 1)}${cloud(240, 150, 1.2)}${cloud(90, 320, 1.4)}${cloud(250, 360, 0.9)}${cloud(160, 230, 0.6)}`,
   };
 
-  // ---------------------------------------------------------------- the blob duo
-  const MOOD_BODY = { cold: ['#8fd8ff', '#c9b6ff'], hot: ['#ff8a5c', '#ff6a8a'], burnt: ['#3b3552', '#3b3552'] };
-  function face(mood, pip) {
-    const eyesOpen = (py = 2, r = 4) => `<ellipse cx="38" cy="52" rx="9" ry="10" fill="#fff" ${S(4)}/><ellipse cx="62" cy="52" rx="9" ry="10" fill="#fff" ${S(4)}/><circle cx="38" cy="${52 + py}" r="${r}" fill="${OL}"/><circle cx="62" cy="${52 + py}" r="${r}" fill="${OL}"/>`;
-    switch (mood) {
-      case 'happy': return `<path d="M30 54 Q38 44 46 54 M54 54 Q62 44 70 54" fill="none" ${S(5)}/><path d="M38 68 Q50 82 62 68 Z" fill="#ff5c7a" ${S(4)}/><ellipse cx="26" cy="66" rx="7" ry="4" fill="#ff5c8a" opacity=".6"/><ellipse cx="74" cy="66" rx="7" ry="4" fill="#ff5c8a" opacity=".6"/>`;
-      case 'scared': return `${eyesOpen(0, 2.5)}<path d="M28 40 L44 33 M72 40 L56 33" ${S(4)}/><ellipse cx="50" cy="76" rx="8" ry="10" fill="${OL}"/><path d="M80 30 Q86 40 80 44 Q74 40 80 30Z" fill="#9fe6ff" ${S(2.5)}/>`;
-      case 'cold': return `${eyesOpen(3, 3.5)}<path d="M28 44 L44 38 M72 44 L56 38" ${S(4)}/><path d="M36 74 L41 70 L46 76 L51 70 L56 76 L61 70 L66 74" fill="none" ${S(4)}/>`;
-      case 'hot': return `<path d="M30 52 H46 M54 52 H70" ${S(5)}/><path d="M40 70 Q50 78 60 70" fill="none" ${S(4)}/><path d="M46 72 Q50 86 56 72Z" fill="#ff5c7a" ${S(3)}/><path d="M18 34 Q24 44 18 48 Q12 44 18 34Z M84 40 Q90 50 84 54 Q78 50 84 40Z" fill="#9fe6ff" ${S(2.5)}/>`;
-      case 'hungry': case 'thirsty': return `${eyesOpen(4, 4)}<path d="M28 44 L44 40 M72 44 L56 40" ${S(4)}/><path d="M40 72 Q50 66 60 72" fill="none" ${S(4)}/>${mood === 'hungry' ? `<path d="M58 72 Q60 84 56 88" fill="none" stroke="#9fe6ff" stroke-width="4" stroke-linecap="round"/>` : `<path d="M47 72 Q50 84 54 72Z" fill="#ff8aa0" ${S(3)}/>`}`;
-      case 'sad': return `${eyesOpen(3, 4)}<path d="M28 42 L44 38 M72 42 L56 38" ${S(4)}/><path d="M40 76 Q50 68 60 76" fill="none" ${S(4)}/><path d="M30 62 Q32 72 28 74 Q24 70 30 62Z" fill="#9fe6ff" ${S(2.5)}/>`;
-      case 'burnt': return `${eyesOpen(0, 3)}<path d="M40 74 H60" ${S(4)}/><path d="M50 10 Q40 0 50 -10 Q60 -20 50 -30" fill="none" stroke="#9a93b8" stroke-width="5" stroke-linecap="round"/>`;
-      case 'dizzy': return `<path d="M38 52 m-7 0 a7 7 0 1 0 7 -7 a4 4 0 1 0 -4 4 M62 52 m-7 0 a7 7 0 1 0 7 -7 a4 4 0 1 0 -4 4" fill="none" ${S(3.5)}/><path d="M40 74 Q46 70 50 74 T60 74" fill="none" ${S(4)}/>`;
-      default: return eyesOpen();
-    }
-  }
-  function blob(x, y, s, color, mood, pip) {
-    const body = (MOOD_BODY[mood] || [])[pip ? 1 : 0] || color;
-    const shiver = mood === 'cold' ? `<path d="M2 50 L-6 54 M2 64 L-6 66 M98 50 L106 54 M98 64 L106 66" ${S(3.5)}/>` : '';
-    const bow = pip ? `<path d="M64 14 L80 6 L80 24 Z M64 14 L50 4 L52 24 Z" fill="#ffe14d" ${S(3.5)}/><circle cx="64" cy="14" r="5" fill="#ff4f7b" ${S(3)}/>` : '';
-    const pack = !pip ? `<rect x="78" y="44" width="20" height="34" rx="6" fill="#ff9a3d" ${S(4)}/>` : '';
-    return `<g transform="translate(${x} ${y}) scale(${s})">${pack}
-      <path d="M50 8 C80 8 95 36 95 64 C95 88 76 96 50 96 C24 96 5 88 5 64 C5 36 20 8 50 8Z" fill="${body}" ${S(6)}/>
-      <ellipse cx="32" cy="30" rx="10" ry="6" fill="#fff" opacity=".5" transform="rotate(-30 32 30)"/>
-      ${face(mood, pip)}${shiver}${bow}</g>`;
-  }
-  const duo = (mood) => `<svg class="pk-duo-svg" viewBox="-10 -40 230 140" overflow="visible" aria-hidden="true">${blob(0, 0, 1, '#2fb4ff', mood, false)}${blob(112, 6, 0.9, '#ff7ab8', mood, true)}</svg>`;
+  // ---------------------------------------------------------------- Bo & Pip, the stick-figure duo
+  const duo = (mood) => `<svg class="pk-duo-svg" viewBox="0 -150 172 156" overflow="visible" aria-hidden="true">${window.STICK.bo(mood, 44, 0, 1)}${window.STICK.pip(mood, 126, 2, 0.94)}</svg>`;
 
   // ---------------------------------------------------------------- threats (100 x 100)
   const eyes = (x1, x2, y, r = 7) => `<circle cx="${x1}" cy="${y}" r="${r}" fill="#fff" ${S(3.5)}/><circle cx="${x2}" cy="${y}" r="${r}" fill="#fff" ${S(3.5)}/><circle cx="${x1 - 1}" cy="${y + 1}" r="${r * 0.45}" fill="${OL}"/><circle cx="${x2 - 1}" cy="${y + 1}" r="${r * 0.45}" fill="${OL}"/>`;
-  const brows = (x1, x2, y) => `<path d="M${x1 - 9} ${y - 12} L${x1 + 6} ${y - 6} M${x2 + 9} ${y - 12} L${x2 - 6} ${y - 6}" ${S(4)}/>`;
   const THREATS = {
-    shark: { name: 'shark', svg: `<path d="M50 18 L64 44 L40 44Z" fill="#7d93b8" ${S(4)}/><path d="M6 64 Q20 36 60 40 Q92 44 98 70 Q70 92 30 86 Q12 82 6 64Z" fill="#8fa8d0" ${S(5)}/><path d="M30 86 Q60 70 98 70 Q70 92 30 86Z" fill="#fff"/><path d="M40 74 L46 82 L52 74 L58 82 L64 74 L70 82 L76 74" fill="#fff" ${S(3)}/>${eyes(70, 70, 56, 6)}<path d="M62 46 L78 52" ${S(4)}/>` },
-    bear: { name: 'bear', svg: `<circle cx="26" cy="22" r="12" fill="#9a5b2e" ${S(4)}/><circle cx="74" cy="22" r="12" fill="#9a5b2e" ${S(4)}/><path d="M50 14 C84 14 94 40 94 62 C94 88 76 96 50 96 C24 96 6 88 6 62 C6 40 16 14 50 14Z" fill="#b5703a" ${S(5)}/><ellipse cx="50" cy="66" rx="18" ry="14" fill="#f2c38f" ${S(4)}/><ellipse cx="50" cy="60" rx="7" ry="5" fill="${OL}"/><path d="M42 74 Q50 80 58 74" fill="none" ${S(3.5)}/>${eyes(36, 64, 44, 6)}${brows(36, 64, 44)}` },
+    shark: { name: 'shark', svg: window.STICK.creature('shark') },
+    bear: { name: 'bear', svg: window.STICK.creature('bear') },
     bees: { name: 'bees', svg: [[30, 34, 1], [68, 26, 0.85], [56, 68, 1.1]].map(([x, y, s]) => `<g transform="translate(${x} ${y}) scale(${s})"><ellipse cx="-4" cy="-12" rx="8" ry="5" fill="#e9f8ff" ${S(2.5)}/><ellipse cx="6" cy="-12" rx="7" ry="4" fill="#e9f8ff" ${S(2.5)}/><ellipse rx="16" ry="11" fill="#ffd21c" ${S(3.5)}/><path d="M-5 -10 V10 M3 -11 V11" stroke="${OL}" stroke-width="4.5"/><circle cx="10" cy="-3" r="2.6" fill="${OL}"/><path d="M-16 0 L-22 0" ${S(3.5)}/></g>`).join('') },
     snake: { name: 'snake', svg: `<path d="M10 86 Q10 70 40 72 Q80 74 80 60 Q80 44 54 46 Q36 48 40 36" fill="none" stroke="${OL}" stroke-width="20" stroke-linecap="round"/><path d="M10 86 Q10 70 40 72 Q80 74 80 60 Q80 44 54 46 Q36 48 40 36" fill="none" stroke="#5fcf5a" stroke-width="12" stroke-linecap="round"/><ellipse cx="42" cy="26" rx="18" ry="14" fill="#5fcf5a" ${S(5)}/>${eyes(36, 50, 22, 5)}<path d="M40 38 L40 48 L36 52 M40 48 L44 52" stroke="#ff4f7b" stroke-width="3" fill="none"/>` },
     ghost: { name: 'ghost', svg: `<path d="M16 92 L16 46 Q16 10 50 10 Q84 10 84 46 L84 92 L72 84 L62 92 L50 84 L38 92 L28 84Z" fill="#f4f2ff" ${S(5)}/><ellipse cx="38" cy="44" rx="6" ry="9" fill="${OL}"/><ellipse cx="62" cy="44" rx="6" ry="9" fill="${OL}"/><ellipse cx="50" cy="66" rx="8" ry="11" fill="${OL}"/>` },
-    vampire: { name: 'vampire', svg: `<path d="M8 96 L20 40 L50 56 L80 40 L92 96Z" fill="#3b2a5c" ${S(4)}/><path d="M20 40 L50 56 L80 40 L50 66Z" fill="#e8304f" ${S(3)}/><path d="M50 14 C74 14 82 34 82 52 C82 72 68 80 50 80 C32 80 18 72 18 52 C18 34 26 14 50 14Z" fill="#d6ccff" ${S(5)}/><path d="M24 30 Q50 6 76 30 L50 22Z" fill="${OL}"/>${eyes(38, 62, 46, 6)}${brows(38, 62, 46)}<path d="M40 64 Q50 70 60 64" fill="none" ${S(3.5)}/><path d="M43 65 L45 72 L47 66 M53 66 L55 72 L57 65" fill="#fff" ${S(2)}/>` },
-    yeti: { name: 'yeti', svg: `<path d="M50 8 L58 16 L66 8 L72 18 L82 14 L84 28 C94 40 94 60 92 70 C90 90 72 96 50 96 C28 96 10 90 8 70 C6 60 6 40 16 28 L18 14 L28 18 L34 8 L42 16Z" fill="#f6fbff" ${S(5)}/><ellipse cx="50" cy="56" rx="24" ry="22" fill="#8fc4f0" ${S(4)}/>${eyes(42, 58, 50, 5)}${brows(42, 58, 50)}<path d="M40 66 Q50 74 60 66" fill="none" ${S(4)}/>` },
-    croc: { name: 'crocodile', svg: `<path d="M4 70 Q8 50 40 50 L94 56 Q98 64 94 72 L40 80 Q8 84 4 70Z" fill="#5fae4a" ${S(5)}/><path d="M40 64 L94 64" ${S(3)}/><path d="M46 64 L50 70 L54 64 L58 70 L62 64 L66 70 L70 64 L74 70 L78 64" fill="#fff" ${S(2.5)}/><circle cx="30" cy="46" r="10" fill="#5fae4a" ${S(4)}/>${eyes(30, 30, 46, 5)}<path d="M10 60 L14 56 L18 60" ${S(3)}/>` },
-    monkey: { name: 'monkey', svg: `<circle cx="18" cy="40" r="11" fill="#e8b98a" ${S(4)}/><circle cx="82" cy="40" r="11" fill="#e8b98a" ${S(4)}/><circle cx="50" cy="44" r="32" fill="#9a5b2e" ${S(5)}/><path d="M28 48 Q30 30 50 34 Q70 30 72 48 Q74 70 50 72 Q26 70 28 48Z" fill="#f2c38f" ${S(4)}/>${eyes(42, 58, 46, 5)}<path d="M42 62 Q50 68 58 62" fill="none" ${S(3.5)}/><rect x="58" y="72" width="34" height="24" rx="3" fill="#fff4d6" ${S(3.5)} transform="rotate(-10 75 84)"/><path d="M64 80 L86 76 M66 88 L80 86" stroke="#e8304f" stroke-width="3"/>` },
-    ufo: { name: 'aliens', svg: `<path d="M30 64 L10 98 H90 L70 64Z" fill="#b9ffdc" opacity=".55"/><path d="M34 40 Q50 6 66 40Z" fill="#bfeaff" ${S(4)}/><circle cx="50" cy="34" r="8" fill="#7be07a" ${S(3)}/><circle cx="47" cy="33" r="2" fill="${OL}"/><circle cx="53" cy="33" r="2" fill="${OL}"/><ellipse cx="50" cy="48" rx="42" ry="14" fill="#9aa6c0" ${S(5)}/><circle cx="26" cy="50" r="4" fill="#ffe14d"/><circle cx="50" cy="54" r="4" fill="#ff4f7b"/><circle cx="74" cy="50" r="4" fill="#7be07a"/>` },
-    mouse: { name: 'mouse', svg: `<circle cx="34" cy="40" r="16" fill="#c9c2e6" ${S(4)}/><circle cx="66" cy="40" r="16" fill="#c9c2e6" ${S(4)}/><circle cx="34" cy="40" r="8" fill="#ffb3c8"/><circle cx="66" cy="40" r="8" fill="#ffb3c8"/><ellipse cx="50" cy="66" rx="26" ry="24" fill="#b0a8d0" ${S(5)}/>${eyes(42, 58, 62, 4.5)}<circle cx="50" cy="76" r="4" fill="#ff7ab8" ${S(2)}/><path d="M74 80 Q94 84 90 64" fill="none" ${S(4)}/>` },
+    vampire: { name: 'vampire', svg: window.STICK.creature('vampire') },
+    yeti: { name: 'yeti', svg: window.STICK.creature('yeti') },
+    croc: { name: 'crocodile', svg: window.STICK.creature('croc') },
+    monkey: { name: 'monkey', svg: window.STICK.creature('monkey') },
+    ufo: { name: 'aliens', svg: `<path d="M30 64 L10 98 H90 L70 64Z" fill="#b9ffdc" opacity=".55"/><path d="M34 40 Q50 6 66 40Z" fill="#bfeaff" ${S(4)}/><path d="M44 26 L38 14 M56 26 L62 14" ${S(2.5)}/><circle cx="38" cy="13" r="3" fill="#ff4f7b" ${S(2)}/><circle cx="62" cy="13" r="3" fill="#ff4f7b" ${S(2)}/><path d="M42 42 Q40 30 50 22 Q60 30 58 42Z" fill="#7be07a" ${S(3)}/><ellipse cx="45" cy="31" rx="3" ry="4.5" fill="${OL}" transform="rotate(-20 45 31)"/><ellipse cx="55" cy="31" rx="3" ry="4.5" fill="${OL}" transform="rotate(20 55 31)"/><ellipse cx="50" cy="48" rx="42" ry="14" fill="#9aa6c0" ${S(5)}/><circle cx="26" cy="50" r="4" fill="#ffe14d"/><circle cx="50" cy="54" r="4" fill="#ff4f7b"/><circle cx="74" cy="50" r="4" fill="#7be07a"/>` },
+    mouse: { name: 'mouse', svg: window.STICK.creature('mouse') },
     spider: { name: 'spider', svg: `<path d="M50 0 V24" ${S(2.5)}/>${[-1, 1].map((d) => `<path d="M${50 + 14 * d} 44 L${50 + 34 * d} 28 L${50 + 44 * d} 40 M${50 + 16 * d} 52 L${50 + 40 * d} 48 L${50 + 48 * d} 62 M${50 + 14 * d} 60 L${50 + 34 * d} 70 L${50 + 40 * d} 86 M${50 + 10 * d} 66 L${50 + 22 * d} 84 L${50 + 24 * d} 96" fill="none" ${S(4)}/>`).join('')}<circle cx="50" cy="52" r="20" fill="#3b3552" ${S(4)}/>${eyes(43, 57, 50, 5)}` },
-    dog: { name: 'dog', svg: `<path d="M16 22 Q10 50 26 52 L32 26Z M84 22 Q90 50 74 52 L68 26Z" fill="#7a4a2a" ${S(4)}/><path d="M50 18 C78 18 86 40 86 58 C86 84 70 94 50 94 C30 94 14 84 14 58 C14 40 22 18 50 18Z" fill="#c68a52" ${S(5)}/><ellipse cx="50" cy="70" rx="18" ry="14" fill="#f2d2a8" ${S(4)}/><ellipse cx="50" cy="62" rx="7" ry="5" fill="${OL}"/><path d="M38 76 L42 82 L46 76 L50 82 L54 76 L58 82 L62 76" fill="#fff" ${S(2.5)}/>${eyes(36, 64, 44, 6)}${brows(36, 64, 44)}` },
+    dog: { name: 'dog', svg: window.STICK.creature('dog') },
   };
 
   // ---------------------------------------------------------------- items (100 x 100)
@@ -165,5 +139,5 @@
     guitar: I('guitar', `<path d="M64 40 L90 12" stroke="#9a5b2e" stroke-width="9" stroke-linecap="round"/><path d="M64 40 L90 12" ${S(3)}/><path d="M40 30 C58 26 68 42 60 54 C70 66 60 92 38 88 C14 86 8 62 22 52 C14 38 24 32 40 30Z" fill="#ff9a3d" ${S(5)}/><circle cx="40" cy="60" r="7" fill="${OL}"/>`),
   };
 
-  window.PICK_ART = { BG, THREATS, ITEMS, duo, blob };
+  window.PICK_ART = { BG, THREATS, ITEMS, duo };
 })();

@@ -10,23 +10,6 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- Shared SVG symbols (the Blob mascot) -->
-  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-    <defs>
-      <symbol id="blob" viewBox="0 0 100 100" overflow="visible">
-        <path d="M50 8 C80 8 95 36 95 64 C95 88 76 96 50 96 C24 96 5 88 5 64 C5 36 20 8 50 8Z"
-              fill="currentColor" stroke="#2a1650" stroke-width="6" stroke-linejoin="round"/>
-        <ellipse cx="32" cy="30" rx="10" ry="6" fill="#fff" opacity=".55" transform="rotate(-30 32 30)"/>
-        <ellipse cx="37" cy="56" rx="9" ry="11" fill="#fff" stroke="#2a1650" stroke-width="4"/>
-        <ellipse cx="63" cy="56" rx="9" ry="11" fill="#fff" stroke="#2a1650" stroke-width="4"/>
-        <circle cx="39" cy="58" r="4.5" fill="#2a1650"/>
-        <circle cx="65" cy="58" r="4.5" fill="#2a1650"/>
-        <ellipse cx="24" cy="72" rx="7" ry="4" fill="#ff5c8a" opacity=".55"/>
-        <ellipse cx="76" cy="72" rx="7" ry="4" fill="#ff5c8a" opacity=".55"/>
-        <path d="M43 75 Q50 82 57 75" fill="none" stroke="#2a1650" stroke-width="4" stroke-linecap="round"/>
-      </symbol>
-    </defs>
-  </svg>
 
   <div id="app">
     <!-- Sky backdrop shared by every screen -->
@@ -72,8 +55,8 @@
           <use href="#t-games" fill="#fff" stroke="#fff" stroke-width="12" stroke-linejoin="round"/>
           <use href="#t-games" fill="url(#g-games)"/>
           <!-- Mascots hanging out on the logo -->
-          <use class="logo-blob b-a" href="#blob" x="84" y="326" width="74" height="74" style="color:#2fb4ff"/>
-          <use class="logo-blob b-b" href="#blob" x="636" y="334" width="64" height="64" style="color:#27c46b"/>
+          <g class="logo-fig b-a"><g data-fig='{"x": 118, "y": 408, "s": 0.74, "pose": "wave", "mood": "happy", "hat": "cap", "hatColor": "#2f7de0", "pack": "#ff9a3d"}'></g></g>
+          <g class="logo-fig b-b"><g data-fig='{"x": 676, "y": 408, "s": 0.7, "pose": "cheer", "mood": "happy", "hair": "ponytail", "dress": "#3ccf6e", "bow": "#ffe14d", "flip": true}'></g></g>
         </svg>
         <div class="title-ribbon"><span>5 games from ads that lied to you</span></div>
       </div>
@@ -88,11 +71,11 @@
           <rect x="1035" y="78" width="10" height="38" fill="#9a5b2e"/><circle cx="1040" cy="70" r="28" fill="#2fae58"/>
           <rect x="1090" y="100" width="8" height="26" fill="#9a5b2e"/><circle cx="1094" cy="94" r="18" fill="#2fae58"/>
         </g>
-        <use class="hill-blob h1" href="#blob" x="230" y="104" width="64" height="64" style="color:#ff4f7b"/>
-        <use class="hill-blob h2" href="#blob" x="420" y="150" width="56" height="56" style="color:#ffb81c"/>
-        <use class="hill-blob h3" href="#blob" x="700" y="138" width="60" height="60" style="color:#2fb4ff"/>
-        <use class="hill-blob h4" href="#blob" x="860" y="98" width="52" height="52" style="color:#8d5bff"/>
-        <use class="hill-blob h5" href="#blob" x="960" y="148" width="68" height="68" style="color:#27c46b"/>
+        <g class="hill-fig h1"><g data-fig='{"x": 262, "y": 172, "s": 0.64, "pose": "wave", "mood": "happy", "hat": "party"}'></g></g>
+        <g class="hill-fig h2"><g data-fig='{"x": 448, "y": 210, "s": 0.6, "pose": "cheer", "mood": "happy", "hair": "ponytail", "hairColor": "#ffc21c", "dress": "#ff7ab8"}'></g></g>
+        <g class="hill-fig h3"><g data-fig='{"x": 730, "y": 202, "s": 0.62, "pose": "run", "mood": "happy", "cape": "#2fb4ff", "hat": "crown"}'></g></g>
+        <g class="hill-fig h4"><g data-fig='{"x": 886, "y": 154, "s": 0.56, "pose": "wave", "mood": "happy", "hat": "wizard", "scarf": "#8d5bff"}'></g></g>
+        <g class="hill-fig h5"><g data-fig='{"x": 994, "y": 220, "s": 0.64, "pose": "cheer", "mood": "happy", "hat": "viking", "pack": "#27c46b"}'></g></g>
       </svg>
       <span class="version">v0.2.0</span>
     </section>
@@ -148,13 +131,7 @@
       <div class="panel">
         <div class="panel-head b-teal">CREDITS</div>
         <div class="panel-body">
-          <svg viewBox="0 0 300 80" class="credit-blobs" aria-hidden="true">
-            <use href="#blob" x="10" y="14" width="56" height="56" style="color:#ff4f7b"/>
-            <use href="#blob" x="66" y="8" width="56" height="56" style="color:#ffb81c"/>
-            <use href="#blob" x="122" y="14" width="56" height="56" style="color:#2fb4ff"/>
-            <use href="#blob" x="178" y="8" width="56" height="56" style="color:#8d5bff"/>
-            <use href="#blob" x="234" y="14" width="56" height="56" style="color:#27c46b"/>
-          </svg>
+          <svg viewBox="0 0 300 84" class="credit-figs" aria-hidden="true"><g data-fig='{"x": 30, "y": 78, "s": 0.44, "pose": "cheer", "mood": "happy", "hat": "cap", "hatColor": "#ff4f7b"}'></g><g data-fig='{"x": 90, "y": 78, "s": 0.44, "pose": "wave", "mood": "happy", "hair": "ponytail", "dress": "#ffb81c"}'></g><g data-fig='{"x": 150, "y": 78, "s": 0.44, "pose": "cheer", "mood": "happy", "hat": "crown", "cape": "#2fb4ff"}'></g><g data-fig='{"x": 210, "y": 78, "s": 0.44, "pose": "wave", "mood": "happy", "hat": "wizard"}'></g><g data-fig='{"x": 270, "y": 78, "s": 0.44, "pose": "cheer", "mood": "happy", "hat": "party", "scarf": "#27c46b"}'></g></svg>
           <p>Dedicated to every mobile ad that showed a game that didn't exist.</p>
           <p><b>Design &amp; Code</b><br>You</p>
           <button class="btn b-green" data-action="close-overlay">CLOSE</button>
@@ -166,10 +143,7 @@
       <div class="panel">
         <div class="panel-head b-pink">WARDROBE</div>
         <div class="panel-body">
-          <svg viewBox="0 0 120 110" class="wardrobe-blob" aria-hidden="true">
-            <use href="#blob" x="15" y="20" width="90" height="90" style="color:#ffb81c"/>
-            <path d="M34 34 L40 10 L52 24 L60 4 L68 24 L80 10 L86 34 Z" fill="#ffd21c" stroke="#2a1650" stroke-width="5" stroke-linejoin="round"/>
-          </svg>
+          <svg viewBox="0 0 120 110" class="wardrobe-fig" aria-hidden="true"><g data-fig='{"x": 60, "y": 108, "s": 0.66, "pose": "cheer", "mood": "happy", "hat": "crown", "cape": "#ff7ab8", "scarf": "#ffe14d"}'></g></svg>
           <p>Earn coins from stars, then dress up your hero in <b>NUMBER TOWER</b> (tap 🎩 OUTFITS there).<br>More games will share them soon.</p>
           <button class="btn b-green" data-action="close-overlay">OK</button>
         </div>
@@ -191,6 +165,7 @@
   </div>
 
   <script src="js/games/registry.js"></script>
+  <script src="js/stick.js"></script>
   <script src="js/art.js"></script>
   <script src="js/main.js"></script>
 </body>

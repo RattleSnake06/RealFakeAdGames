@@ -564,19 +564,45 @@
       box(yellow, 1.7, 0.45, 2.1, 0, 0.72, 0, b);
       box(yellow, 1.45, 0.35, 0.8, 0, 1.1, -0.6, b);
       box(dark, 1.2, 0.08, 0.5, 0, 1.3, -0.62, b);
-      for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(dark, 0.1, 0.85, 0.1, sx * 0.62, 1.35, 0.25 + sz * 0.45, b);
-      box(pink, 1.45, 0.12, 1.2, 0, 1.8, 0.25, b);
+      // open seat with a low pink back, so the driver stays visible from the chase camera
+      box(pink, 0.8, 0.24, 0.12, 0, 1.3, 0.7, b);
       box(dark, 0.9, 0.3, 0.55, 0, 1.05, 0.45, b);
       const ex = new T.Mesh(new T.CylinderGeometry(0.07, 0.07, 0.7, 8), dark); ex.position.set(0.58, 1.4, -0.8); b.add(ex);
-      // Blob driver
-      const blobMat = std(0x2fb4ff, { roughness: 0.3 });
-      const blob = new T.Mesh(new T.SphereGeometry(0.4, 24, 16), blobMat); blob.scale.set(1, 0.92, 1); blob.position.set(0, 1.42, 0.2); blob.castShadow = true;
-      const white = std(0xffffff, { roughness: 0.3 });
+      // Stick-figure driver: ink limbs, outlined head, hard hat and scarf, hands on the wheel (forward is -z)
+      const driver = (this.driver = new T.Group()); b.add(driver);
+      driver.scale.setScalar(1.2); driver.position.set(0, -0.26, -0.06); this.driverY = -0.26; // scaled up around the seat
+      const ink = std(OL, { roughness: 0.5 });
+      const V = (x, y, z) => new T.Vector3(x, y, z), UP = V(0, 1, 0);
+      const joint = new T.SphereGeometry(1, 10, 8);
+      const limb = (pts, r = 0.042) => {
+        for (let i = 0; i < pts.length; i++) {
+          const k = new T.Mesh(joint, ink); k.scale.setScalar(r); k.position.copy(pts[i]); driver.add(k);
+          if (!i) continue;
+          const d = V(0, 0, 0).subVectors(pts[i], pts[i - 1]);
+          const c = new T.Mesh(new T.CylinderGeometry(r, r, d.length(), 8), ink);
+          c.position.copy(pts[i - 1]).addScaledVector(d, 0.5); c.quaternion.setFromUnitVectors(UP, d.normalize()); c.castShadow = true; driver.add(c);
+        }
+      };
+      const hip = V(0, 1.22, 0.42), neck = V(0, 1.6, 0.36), wheelAt = V(0, 1.42, -0.02);
+      limb([hip, neck]);
       for (const sx of [-1, 1]) {
-        const eye = new T.Mesh(new T.SphereGeometry(0.11, 12, 8), white); eye.position.set(sx * 0.14, 0.06, -0.33); blob.add(eye);
-        const pup = new T.Mesh(new T.SphereGeometry(0.06, 10, 8), dark); pup.position.set(sx * 0.14, 0.06, -0.42); blob.add(pup);
+        limb([V(0, 1.55, 0.37), V(sx * 0.2, 1.42, 0.22), V(sx * 0.14, wheelAt.y + 0.02, wheelAt.z + 0.02)], 0.036);
+        limb([V(sx * 0.03, 1.22, 0.42), V(sx * 0.12, 1.3, 0.1), V(sx * 0.13, 0.98, 0.02)]);
       }
-      this.blob = blob; b.add(blob);
+      const steer = new T.Mesh(new T.TorusGeometry(0.17, 0.03, 8, 24), ink); steer.position.copy(wheelAt); steer.rotation.x = -Math.PI / 3; driver.add(steer);
+      limb([V(0, 1.18, -0.2), V(0, wheelAt.y - 0.05, wheelAt.z + 0.03)], 0.03);
+      const head = (this.head = new T.Group()); head.position.set(0, 1.78, 0.34); driver.add(head);
+      const skull = new T.Mesh(new T.SphereGeometry(0.17, 24, 16), std(0xffffff, { roughness: 0.35 })); skull.castShadow = true; head.add(skull);
+      head.add(new T.Mesh(new T.SphereGeometry(0.195, 20, 14), new T.MeshBasicMaterial({ color: OL, side: T.BackSide })));
+      for (const sx of [-1, 1]) {
+        const eye = new T.Mesh(new T.SphereGeometry(0.028, 10, 8), ink); eye.position.set(sx * 0.06, 0.01, -0.158); head.add(eye);
+      }
+      const smile = new T.Mesh(new T.TorusGeometry(0.06, 0.014, 6, 16, Math.PI), ink); smile.position.set(0, -0.045, -0.155); smile.rotation.z = Math.PI; head.add(smile);
+      const hatMat = std(0xff9a1c, { roughness: 0.35 });
+      const dome = new T.Mesh(new T.SphereGeometry(0.19, 20, 10, 0, Math.PI * 2, 0, Math.PI / 2), hatMat); dome.position.y = 0.03; dome.castShadow = true; head.add(dome);
+      const brim = new T.Mesh(new T.CylinderGeometry(0.25, 0.25, 0.035, 24), hatMat); brim.position.y = 0.035; head.add(brim);
+      const ridge = new T.Mesh(new T.CylinderGeometry(0.035, 0.035, 0.3, 8), hatMat); ridge.rotation.x = Math.PI / 2; ridge.position.y = 0.2; head.add(ridge);
+      const scarf = new T.Mesh(new T.TorusGeometry(0.075, 0.035, 8, 18), std(0x2fb4ff, { roughness: 0.4 })); scarf.rotation.x = Math.PI / 2; scarf.position.set(0, 1.6, 0.36); driver.add(scarf);
       // Wheels
       const wGeo = new T.CylinderGeometry(0.42, 0.42, 0.34, 20); wGeo.rotateZ(Math.PI / 2);
       const hubGeo = new T.CylinderGeometry(0.18, 0.18, 0.36, 12); hubGeo.rotateZ(Math.PI / 2);
@@ -1294,7 +1320,8 @@
       this.drillSpin.rotation.x -= spin;
       for (const w of this.wheels) w.rotation.x -= (this.speed * dt) / 0.42;
       this.body.position.y = this.mining ? (Math.random() - 0.5) * 0.05 : 0;
-      this.blob.scale.set(1 + Math.sin(this.time * 8) * 0.03, 0.92 - Math.sin(this.time * 8) * 0.03, 1);
+      this.driver.position.y = this.driverY + Math.abs(Math.sin(this.time * 6)) * 0.03;
+      this.head.rotation.z = Math.sin(this.time * 3) * 0.08;
       const g = this.grinding;
       this.rollers[0].rotation.x += (g ? 14 : 1) * dt; this.rollers[1].rotation.x -= (g ? 14 : 1) * dt;
       this.lamp.material.emissiveIntensity = g ? 1.5 + Math.sin(this.time * 20) : 0.2;

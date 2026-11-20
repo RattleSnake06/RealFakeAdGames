@@ -23,13 +23,18 @@ game's specific minigames, characters or look.
 ## Art direction (locked)
 - **Look:** bright sky, halftone dots, rotating sunbursts, chunky "sticker" UI: every panel and button has a
   white rim + dark ink outline (`#2a1650`) + a solid drop shadow. Glossy, rounded buttons that squash when pressed.
-- **Mascots:** the **Blobs**, round jelly characters with big eyes, one color per game
-  (pink Tower, gold Draw, blue Merge, purple Doors, green Hole). They're our own characters,
-  so we never use stick figures from the original game.
+- **Characters:** **stick figures with accessories** (caps, hard hats, crowns, capes, backpacks, scarves,
+  ponytails, dresses, swords), drawn by one shared library (`js/stick.js`) with poses and moods. Our own
+  cast: **Bo** (blue cap, orange backpack) and **Pip** (red ponytail, green dress, yellow bow) star in Pick One;
+  the Number Tower hero is a caped stick knight; the Ore Rush driver wears a hard hat.
+- **Creatures are real creatures**, never "a circle with a face": goblins, yetis, imps, skeletons, winged
+  knights and dragons in Number Tower; bears, dogs, sharks, crocodiles, mice, monkeys, a vampire and more in
+  Pick One. Each has a body, limbs and its own silhouette.
 - **Fonts:** Lilita One (display) + Fredoka (body), with rounded system fallbacks.
 - **Ad parody details:** "Ad ⓘ ✕" chips (the ✕ on the title dodges your click), clickbait stickers,
   screen wipe transitions, cheap little bleep/bloop UI sounds.
-- **Art pipeline:** inline SVG (`js/art.js`) so everything scales sharply on every screen and needs no image files.
+- **Art pipeline:** inline SVG (`js/stick.js` for characters and creatures, `js/art.js` for menu cards) so
+  everything scales sharply on every screen and needs no image files.
 
 ## The 5 games
 | # | Name | The "ad" | Real gameplay | Core systems |
@@ -110,7 +115,7 @@ CLEARED (★) in the menu. Clearing all 5 unlocks a secret ending/credits.
 ## Game 3: Pick One! (built)
 - **Loop:** each level is a 3-scene mini story ("Rainy Hike": downpour → cold night → grumpy bear). Bo and Pip
   are in trouble; tap the item that gets them out. Right: the item flies in and does its job (shield, place,
-  give, throw at the threat, or ride away), the blobs cheer. Wrong: a funny fail (the bomb goes BOOM, the
+  give, throw at the threat, or ride away), Bo and Pip cheer. Wrong: a funny fail (the bomb goes BOOM, the
   umbrella flips inside out, the shark enjoys the water gun), the item is crossed out and you lose a heart.
 - **Difficulty:** levels 1-10 show 2 items, 11-25 show 3, 26-50 show 4 (the most tempting wrong item always
   appears). Levels 21+ have a countdown (10s → 8s → 6s). 3 hearts per level.
@@ -121,7 +126,7 @@ CLEARED (★) in the menu. Clearing all 5 unlocks a secret ending/credits.
 - **Debug:** `index.html?debug` exposes `PK` (e.g. `PK.d.unlocked = 50; PK.openLevel(44)`).
 
 ## Milestones
-**M0 – Shell (DONE)**: animated title (logo, sunburst, hopping Blobs, "press any button"),
+**M0 – Shell (DONE)**: animated title (logo, sunburst, a hopping stick-figure cast, "press any button"),
 game select with a big featured card + 5 game tiles, coin & trophy counters, Wardrobe/Options/Credits,
 game screen placeholder, pause overlay, screen wipe transitions, UI sounds, keyboard + mouse + touch,
 save data, debug "clear it" button.
@@ -156,7 +161,7 @@ For each game, the same checklist:
 - Fake "ad intro" clip before each game (5s, deliberately cheesy, skippable).
 - Real art (consistent cartoon style), music track for menu + one per game.
 - Menu thumbnails become little animated loops.
-- Coins earned per level (stars × 100) → **Wardrobe**: hats/outfits for your Blob, shown on the title screen.
+- Coins earned per level (stars × 100) → **Wardrobe**: hats/outfits for your stick hero, shown on the title screen.
 
 **M4 – Polish & QA**
 - Automated Playwright smoke test: title → menu → each game loads → pause → back, no console errors.

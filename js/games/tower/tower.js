@@ -33,58 +33,26 @@
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
   // ---------------------------------------------------------------- SVG art
-  function hatSVG(id) {
-    switch (id) {
-      case 'cap': return `<path d="M24 34 Q50 8 76 34 Z" fill="#ff4f7b" stroke="${OL}" stroke-width="5"/><path d="M60 32 H92" stroke="${OL}" stroke-width="7" stroke-linecap="round"/><path d="M60 32 H90" stroke="#ff4f7b" stroke-width="3" stroke-linecap="round"/>`;
-      case 'party': return `<path d="M36 34 L52 -6 L68 34 Z" fill="#ffe14d" stroke="${OL}" stroke-width="5" stroke-linejoin="round"/><path d="M42 20 L62 14 M40 28 L66 22" stroke="#ff4f7b" stroke-width="5"/><circle cx="52" cy="-8" r="6" fill="#2fb4ff" stroke="${OL}" stroke-width="4"/>`;
-      case 'tophat': return `<rect x="30" y="26" width="44" height="10" rx="4" fill="${OL}"/><rect x="38" y="-6" width="28" height="34" rx="4" fill="#3b3552" stroke="${OL}" stroke-width="5"/><rect x="38" y="16" width="28" height="7" fill="#ff4f7b"/>`;
-      case 'wizard': return `<path d="M26 36 Q52 28 78 36 L56 -12 Z" fill="#8d5bff" stroke="${OL}" stroke-width="5" stroke-linejoin="round"/><circle cx="50" cy="16" r="3.5" fill="#ffe14d"/><circle cx="60" cy="26" r="2.5" fill="#ffe14d"/>`;
-      case 'viking': return `<path d="M28 36 Q50 4 72 36 Z" fill="#b9c3d6" stroke="${OL}" stroke-width="5"/><path d="M28 30 Q12 24 14 6 Q22 18 32 22 Z M72 30 Q88 24 86 6 Q78 18 68 22 Z" fill="#fff4e6" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/>`;
-      case 'crown': return `<path d="M30 34 L32 8 L42 20 L50 2 L58 20 L68 8 L70 34 Z" fill="#ffe14d" stroke="${OL}" stroke-width="5" stroke-linejoin="round"/><circle cx="50" cy="24" r="4" fill="#ff4f7b" stroke="${OL}" stroke-width="2.5"/>`;
-      case 'halo': return `<ellipse cx="50" cy="0" rx="22" ry="7" fill="none" stroke="#ffe14d" stroke-width="6"/><ellipse cx="50" cy="0" rx="22" ry="7" fill="none" stroke="${OL}" stroke-width="2"/>`;
-      default: return '';
-    }
-  }
+  // the hero is a caped stick figure; every world has its own creature, and the boss is a dragon
   function heroSVG(outfit) {
     const col = (COLORS.find((x) => x.id === outfit.color) || COLORS[0]).c;
-    return `<svg class="nt-hero-svg" viewBox="0 -20 110 125" overflow="visible" aria-hidden="true">
-      <g class="nt-sword"><path d="M78 62 L104 22" stroke="${OL}" stroke-width="11" stroke-linecap="round"/><path d="M78 62 L104 22" stroke="#e6f3ff" stroke-width="5" stroke-linecap="round"/>
-      <path d="M72 56 L86 66" stroke="${OL}" stroke-width="8" stroke-linecap="round"/><path d="M72 56 L86 66" stroke="#ffc21c" stroke-width="4" stroke-linecap="round"/></g>
-      <use href="#blob" x="0" y="6" width="94" height="94" style="color:${col}"/>
-      <g transform="translate(-3 2)">${hatSVG(outfit.hat)}</g>
-    </svg>`;
+    return `<svg class="nt-hero-svg" viewBox="-40 -150 92 154" overflow="visible" aria-hidden="true">${window.STICK.hero({ color: col, hat: outfit.hat })}</svg>`;
   }
-  // our own monster family: one body per world, accessories by ability
+  const FOES = ['goblin', 'yeti', 'imp', 'skeleton', 'knight'];
+  const DRAGONS = [
+    { color: '#ff4f7b', wing: '#7a1f2b' }, { color: '#5aa8f0', wing: '#2a4f9a', belly: '#e9f8ff' },
+    { color: '#ff6a24', wing: '#4a0f24' }, { color: '#7c4dd6', wing: '#2e1650', belly: '#a6ffcf' },
+    { color: '#ffc21c', wing: '#ffffff', belly: '#fff6e2' },
+  ];
   function monsterSVG(world, o = {}) {
-    const th = THEMES[world];
-    const body = o.boss ? '#ff4f7b' : th.foe;
-    const ghost = world === 3;
-    let extra = '', front = '';
-    if (world === 0) extra = `<path d="M18 42 L4 30 L22 34 Z M82 42 L96 30 L78 34 Z" fill="${body}" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/>`;
-    if (world === 1) extra = `<path d="M24 22 L30 10 L36 22 L44 8 L52 22 L60 8 L66 22 L72 10 L78 24" fill="#fff" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/>`;
-    if (world === 2) extra = `<path d="M30 24 Q22 6 32 2 Q32 14 40 20 Z M70 24 Q78 6 68 2 Q68 14 60 20 Z" fill="#ffd27a" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/>`;
-    if (world === 4) extra = `<path d="M14 50 Q-6 34 6 18 Q14 36 26 40 Z M86 50 Q106 34 94 18 Q86 36 74 40 Z" fill="#fff" stroke="${OL}" stroke-width="4" stroke-linejoin="round"/><ellipse cx="50" cy="8" rx="16" ry="5" fill="none" stroke="#ffc21c" stroke-width="5"/>`;
-    const shape = ghost
-      ? `<path d="M18 92 L18 48 Q18 14 50 14 Q82 14 82 48 L82 92 L72 84 L62 92 L50 84 L38 92 L28 84 Z" fill="${body}" stroke="${OL}" stroke-width="6" stroke-linejoin="round" opacity=".95"/>`
-      : `<path d="M50 16 C80 16 92 40 92 64 C92 86 76 94 50 94 C24 94 8 86 8 64 C8 40 20 16 50 16Z" fill="${body}" stroke="${OL}" stroke-width="6"/>`;
-    if (o.ab === 'armor') {
-      extra += `<path d="M20 46 Q50 4 80 46 Z" fill="#b9c3d6" stroke="${OL}" stroke-width="5"/><path d="M50 10 V46" stroke="${OL}" stroke-width="3"/>`;
-      front += `<path d="M2 60 Q2 50 18 48 Q34 50 34 60 Q34 82 18 92 Q2 82 2 60Z" fill="#9aa6c0" stroke="${OL}" stroke-width="5"/><path d="M18 54 V86 M8 66 H28" stroke="#ffe14d" stroke-width="4"/>`;
-    }
-    if (o.ab === 'thief') front += `<rect x="20" y="44" width="60" height="16" rx="8" fill="${OL}"/><path d="M84 70 L100 54" stroke="${OL}" stroke-width="9" stroke-linecap="round"/><path d="M84 70 L100 54" stroke="#e6f3ff" stroke-width="4" stroke-linecap="round"/>`;
-    if (o.ab === 'curse') extra += `<circle cx="50" cy="56" r="44" fill="#b23cff" opacity=".22"/>`;
-    if (o.boss) extra += `<path d="M28 22 L30 0 L40 12 L50 -4 L60 12 L70 0 L72 22 Z" fill="#ffe14d" stroke="${OL}" stroke-width="5" stroke-linejoin="round"/>`;
-    const eyeY = 52;
-    const eyes = `<ellipse cx="38" cy="${eyeY}" rx="8" ry="9" fill="#fff" stroke="${OL}" stroke-width="4"/><ellipse cx="62" cy="${eyeY}" rx="8" ry="9" fill="#fff" stroke="${OL}" stroke-width="4"/>
-      <circle cx="36" cy="${eyeY + 2}" r="4" fill="${OL}"/><circle cx="60" cy="${eyeY + 2}" r="4" fill="${OL}"/>
-      <path d="M28 ${eyeY - 12} L44 ${eyeY - 6} M72 ${eyeY - 12} L56 ${eyeY - 6}" stroke="${OL}" stroke-width="5" stroke-linecap="round"/>
-      <path d="M38 74 Q50 66 62 74" fill="none" stroke="${OL}" stroke-width="5" stroke-linecap="round"/><path d="M44 71 L46 76 L49 70 M53 70 L55 76 L57 71" fill="#fff" stroke="${OL}" stroke-width="2"/>`;
-    const skull = o.ab === 'curse' ? `<g transform="translate(40 78)"><circle cx="10" cy="6" r="7" fill="#fff" stroke="${OL}" stroke-width="2.5"/><circle cx="7" cy="6" r="2" fill="${OL}"/><circle cx="13" cy="6" r="2" fill="${OL}"/></g>` : '';
-    return `<svg viewBox="-4 -8 108 108" overflow="visible" aria-hidden="true">${extra}${shape}${eyes}${skull}${front}</svg>`;
+    const ST = window.STICK;
+    const tint = world === 0 || world === 2 ? { color: THEMES[world].foe } : {};
+    const art = o.boss ? ST.creature('dragon', DRAGONS[world]) : ST.creature(FOES[world], tint) + ST.gear(o.ab);
+    return `<svg viewBox="0 0 100 100" overflow="visible" aria-hidden="true">${art}</svg>`;
   }
   function gateSVG(op) {
     if (op === '%') return `<svg viewBox="0 0 100 100" aria-hidden="true"><path d="M50 92 C22 92 16 66 30 46 C32 60 40 62 40 54 C40 36 52 26 56 8 C66 30 84 44 80 66 C78 82 68 92 50 92Z" fill="#ff6a24" stroke="${OL}" stroke-width="6" stroke-linejoin="round"/><path d="M50 84 C38 84 36 72 42 64 C44 70 48 70 48 66 C48 58 54 54 56 46 C62 58 68 66 64 76 C62 82 56 84 50 84Z" fill="#ffe14d"/></svg>`;
-    if (op === '-') return `<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="40" y="6" width="20" height="18" rx="4" fill="#c77b3c" stroke="${OL}" stroke-width="5"/><path d="M42 24 V36 Q16 46 16 68 Q16 94 50 94 Q84 94 84 68 Q84 46 58 36 V24 Z" fill="#b23cff" stroke="${OL}" stroke-width="6" stroke-linejoin="round"/><circle cx="50" cy="68" r="12" fill="#fff" stroke="${OL}" stroke-width="3"/><circle cx="46" cy="66" r="2.5" fill="${OL}"/><circle cx="54" cy="66" r="2.5" fill="${OL}"/><path d="M44 74 H56" stroke="${OL}" stroke-width="3"/></svg>`;
+    if (op === '-') return `<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="40" y="6" width="20" height="18" rx="4" fill="#c77b3c" stroke="${OL}" stroke-width="5"/><path d="M42 24 V36 Q16 46 16 68 Q16 94 50 94 Q84 94 84 68 Q84 46 58 36 V24 Z" fill="#b23cff" stroke="${OL}" stroke-width="6" stroke-linejoin="round"/>${window.STICK.skull(50, 66, 1.15)}</svg>`;
     const bad = op === '/';
     const blade = bad ? '#c2453e' : op === 'x' ? '#e6f3ff' : '#cfe9ff';
     return `<svg viewBox="0 0 100 100" aria-hidden="true"><g transform="rotate(${bad ? 35 : -35} 50 50)">

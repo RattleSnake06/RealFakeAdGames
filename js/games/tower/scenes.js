@@ -69,10 +69,9 @@
         <radialGradient id="sc0sun"><stop offset="0" stop-color="#fff8c4"/><stop offset=".7" stop-color="#ffe14d"/><stop offset="1" stop-color="#ffc21c"/></radialGradient></defs>
       <rect width="1600" height="900" fill="url(#sc0s)"/>
       <g transform="translate(1040 160)"><g class="sc-spin">${[...Array(12)].map((_, i) => `<path d="M-14 0 L0 -230 L14 0 Z" fill="#fff" opacity=".22" transform="rotate(${i * 30})"/>`).join('')}</g>
+        ${[...Array(10)].map((_, i) => `<path d="M-11 -84 L0 -112 L11 -84 Z" fill="#ffc21c" stroke="${OL}" stroke-width="5" stroke-linejoin="round" transform="rotate(${i * 36 + 18})"/>`).join('')}
         <circle r="74" fill="url(#sc0sun)" stroke="${OL}" stroke-width="6"/>
-        <path d="M-30 -8 q8 -8 16 0 M14 -8 q8 -8 16 0" stroke="${OL}" stroke-width="5" fill="none" stroke-linecap="round"/>
-        <path d="M-22 18 Q0 36 22 18" stroke="${OL}" stroke-width="5" fill="none" stroke-linecap="round"/>
-        <ellipse cx="-36" cy="12" rx="10" ry="6" fill="#ff8ab0" opacity=".6"/><ellipse cx="36" cy="12" rx="10" ry="6" fill="#ff8ab0" opacity=".6"/></g>
+        <circle cx="-26" cy="-28" r="22" fill="#fff" opacity=".45"/><circle cx="-44" cy="-4" r="7" fill="#fff" opacity=".45"/></g>
       <g class="sc-drift a">${cloud(220, 150, 1.3)}${cloud(1380, 250, 1.0)}</g>
       <g class="sc-drift b">${cloud(660, 90, 0.8)}${cloud(1250, 90, 0.7)}</g>
       <path d="M0 610 Q220 520 440 590 T880 560 T1320 585 T1600 555 V900 H0Z" fill="#b5ec98"/>

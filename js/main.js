@@ -173,7 +173,7 @@
     $('#game-title').textContent = g.name;
     if (!g.scripts) return mountPlaceholder(g);
     $('#screen-game').classList.add('live');
-    stage.innerHTML = `<div class="game-loading"><svg viewBox="0 0 100 100"><use href="#blob" x="10" y="10" width="80" height="80" style="color:${g.color}"/></svg><span>LOADING…</span></div>`;
+    stage.innerHTML = `<div class="game-loading"><svg viewBox="-60 -150 120 156">${window.STICK.figure({ pose: 'run', mood: 'happy', cape: g.color })}</svg><span>LOADING…</span></div>`;
     g.scripts.reduce((p, src) => p.then(() => loadScript(src)), Promise.resolve())
       .then(() => {
         if (token !== mountToken || state.screen !== 'game') return;
@@ -296,6 +296,9 @@
   $('#set-sfx').oninput = (e) => { s.sfx = +e.target.value; save(); };
   $('#set-sfx').onchange = () => sfx.click();
   $('#set-shake').onchange = (e) => { s.shake = e.target.checked; save(); sfx.click(); };
+
+  // draw the stick-figure cast on the title screen, credits and wardrobe
+  $$('[data-fig]').forEach((el) => { try { el.innerHTML = window.STICK.figure(JSON.parse(el.dataset.fig)); } catch (err) { console.error(err); } });
 
   show('title');
 })();
